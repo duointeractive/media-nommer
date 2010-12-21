@@ -4,3 +4,5 @@
 *.swp
 .project
 .pydevproject
+.settings
+docs
