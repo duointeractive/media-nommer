@@ -9,5 +9,6 @@ def run_every_second():
     """
     Just an example task.
     """
-    print "a second has passed"
+    #print "a second has passed"
+    pass
 task.LoopingCall(run_every_second).start(1.0, now=False)

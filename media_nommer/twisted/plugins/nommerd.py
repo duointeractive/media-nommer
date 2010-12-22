@@ -10,7 +10,9 @@ from twisted.application.service import IServiceMaker
 from twisted.application import internet
 from twisted.web.server import Site
 
+from media_nommer.nommerd.conf import settings
 from media_nommer.nommerd import interval_tasks
+from media_nommer.nommerd.exceptions import NoConfigFileException
 from media_nommer.nommerd.web.urls import URL_ROOT
 
 class Options(usage.Options):
@@ -22,7 +24,7 @@ class Options(usage.Options):
     # Set up the parameters we're looking for.
     optParameters = [
          ["port", "p", 8001, "The port number to listen on."],
-         ["config", "c", None, "Config file"]
+         ["config", "c", "nomconf", "Config file"]
     ]
 
 
@@ -40,8 +42,22 @@ class WebApiServiceMaker(object):
         Construct a TCPServer from a Site factory, along with our URL
         structure module.
         """
-        return internet.TCPServer(int(options["port"]), Site(URL_ROOT))
+        self.load_settings(options)
+        return internet.TCPServer(int(options['port']), Site(URL_ROOT))
 
+    def load_settings(self, options):
+        cfg_file = options['config']
+
+        try:
+            user_settings = __import__(cfg_file)
+        except ImportError:
+            message = "The config module '%s' could not be found in your" \
+                      "sys.path. Correct your path or specify another config " \
+                      "module with the --config parameter when running the " \
+                      "nommerd Twisted plugin." % cfg_file
+            raise NoConfigFileException(message)
+
+        settings.update_from_user_settings(user_settings)
 
 # Now construct an object which *provides* the relevant interfaces
 # The name of this variable is irrelevant, as long as there is *some*
