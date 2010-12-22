@@ -1,0 +1,14 @@
+.. _issue tracker: https://github.com/duointeractive/media-nommer/issues
+
+.. _Python: http://python.org
+.. _Twisted: http://twistedmatrix.com/trac/
+.. _Boto: http://boto.cloudhackers.com/
+
+.. _virtualenv: http://pypi.python.org/pypi/virtualenv
+.. _virtualenvwrapper: http://www.doughellmann.com/projects/virtualenvwrapper/
+
+.. _FFmpeg: http://www.ffmpeg.org/
+
+.. _EC2: http://aws.amazon.com/ec2/
+.. _S3: http://aws.amazon.com/s3/
+.. _Amazon AWS: http://aws.amazon.com/

@@ -1,9 +1,10 @@
 """
-Import the 'settings' object in this module to get the master list of global
-settings for nommerd. This involves pulling the default values, then
+Import the :py:obj:`media_nommer.nommerd.conf.settings` object in this module to get the master list of 
+global settings for nommerd. This involves pulling the default values, then
 overriding them with the user's settings.
 
-Keep in mind that these settings are only important to nommerd.
+.. tip:: Keep in mind that these settings and this module are only import
+         to nommerd, not the rest of media-nommer's components.
 """
 from media_nommer.nommerd.conf import default_settings
 
@@ -25,11 +26,16 @@ class SettingsStore(object):
         """
         Sets attributes on this object based on the setting found in the
         given 'settings_module' module.
+        
+        :param settings_module: The settings  module to update from.
         """
         for setting in dir(settings_module):
             if setting == setting.upper():
                 setattr(self, setting, getattr(settings_module, setting))
 
-# This is the object you'll want to imoprt to get at the settings values.
-# They are attributes on this object, and are all uppercase.
+
 settings = SettingsStore()
+"""
+This is the object you'll want to import to get at the settings values.
+They are attributes on this object, and are all uppercase.
+"""
