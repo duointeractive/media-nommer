@@ -15,6 +15,6 @@ class NommerDaemonException(Exception):
 
 class NoConfigFileException(NommerDaemonException):
     """
-    Raised when no configuration file could be found.
+    Raised when a nommerd config module can't be found.
     """
     pass

@@ -2,6 +2,9 @@
 This twistd plugin is where the nommerd is started. In addition to starting
 the TCPServer process, a few other things are tied in like scheduling checks
 of the S3 incoming buckets and determining whether more EC2 nodes are needed.
+
+More documentation about the Twisted plugin system can be found here:
+http://twistedmatrix.com/documents/current/core/howto/plugin.html
 """
 from zope.interface import implements
 from twisted.python import usage
@@ -46,6 +49,11 @@ class WebApiServiceMaker(object):
         return internet.TCPServer(int(options['port']), Site(URL_ROOT))
 
     def load_settings(self, options):
+        """
+        Loads 
+        """
+        # This is the value given with --config, and should be a python module
+        # on their sys.path, minus the .py extension. A FQPN.
         cfg_file = options['config']
 
         try:
@@ -57,7 +65,9 @@ class WebApiServiceMaker(object):
                       "nommerd Twisted plugin." % cfg_file
             raise NoConfigFileException(message)
 
-        settings.update_from_user_settings(user_settings)
+        # Now that the user's settings have been imported, populate the
+        # global settings object and override defaults with the user's values.
+        settings.update_settings_from_module(user_settings)
 
 # Now construct an object which *provides* the relevant interfaces
 # The name of this variable is irrelevant, as long as there is *some*
