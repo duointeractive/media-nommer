@@ -1,14 +1,18 @@
+.. _GitHub project: https://github.com/duointeractive/media-nommer
 .. _issue tracker: https://github.com/duointeractive/media-nommer/issues
 
 .. _Python: http://python.org
 .. _Twisted: http://twistedmatrix.com/trac/
 .. _Boto: http://boto.cloudhackers.com/
+.. _nose: http://somethingaboutorange.com/mrl/projects/nose/
 
 .. _virtualenv: http://pypi.python.org/pypi/virtualenv
 .. _virtualenvwrapper: http://www.doughellmann.com/projects/virtualenvwrapper/
 
+.. _git: http://git-scm.com/
 .. _FFmpeg: http://www.ffmpeg.org/
 
+.. _GitHub: https://github.com/
 .. _EC2: http://aws.amazon.com/ec2/
 .. _S3: http://aws.amazon.com/s3/
 .. _CloudFront: http://aws.amazon.com/cloudfront/

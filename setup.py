@@ -14,6 +14,7 @@ setup(
     license='BSD License',
     url='http://duointeractive.github.com/media-nommer/',
     platforms=["any"],
+    requires=['boto', 'twisted'],
     classifiers=[
         'Development Status :: 2 - Pre-Alpha',
         'Intended Audience :: Developers',

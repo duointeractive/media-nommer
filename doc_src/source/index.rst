@@ -39,6 +39,7 @@ Documentation
    
    introduction
    installation
+   hacking
    
 API Reference
 -------------
