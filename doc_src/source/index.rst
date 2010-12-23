@@ -2,9 +2,9 @@
 
 .. include:: global.txt
 
-==================================================
-media-nommer: A Python-based media encoder service
-==================================================
+=================================================
+media-nommer: A Python-based media encoder system
+=================================================
 
 media-nommer is an encoding system that is able to utilize a number of
 different encoding methods and services via the aptly named Nommer system.
