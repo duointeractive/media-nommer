@@ -11,4 +11,8 @@
 
 .. _EC2: http://aws.amazon.com/ec2/
 .. _S3: http://aws.amazon.com/s3/
+.. _CloudFront: http://aws.amazon.com/cloudfront/
 .. _Amazon AWS: http://aws.amazon.com/
+
+.. _DUO Interactive: http://duointeractive.com
+.. _BSD License: http://opensource.org/licenses/bsd-license.php

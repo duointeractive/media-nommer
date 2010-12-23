@@ -23,6 +23,8 @@ the boring stuff, leaving you to create your media for the masses to consume
 
 **Project Status:** Early development
 
+**License:** media-nommer is licensed under the `BSD License`_.
+
 Useful Links
 ------------
 
@@ -35,6 +37,7 @@ Documentation
 .. toctree::
    :maxdepth: 2
    
+   introduction
    installation
    
 API Reference
