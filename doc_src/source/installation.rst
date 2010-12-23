@@ -9,6 +9,11 @@ Due to the early state of this project, there is a good chance that parts of
 these instructions are out of date at any given time. If you run into any such
 issue please let us know on our `issue tracker`_.
 
+.. note:: 
+    The following instructions are directed at what your eventual production
+    environment will need. Developers setting up a dev environment can omit
+    anything that they don't need (like daemonizing and process monitoring).
+
 Assumptions
 -----------
 For the sake of sanity, good deployment practices, and uniformity, we're
@@ -23,3 +28,24 @@ but it will be *much* more difficult for us to help you:
 * You have Python_ 2.5 or later. Python_ 2.6 or 2.7 is preferred. Python_ 3.x is 
   not currently supported.
 * You have an `Amazon AWS`_ account, and can create or destroy S3_ buckets.
+
+Requirements
+------------
+
+* Some flavor of Linux, Unix, BSD, Mac OS, or POSIX compliant OS.
+* Python_ 2.5 or higher, Python_ 2.6 or 2.7 recommended. Python_ 3.x is not 
+  supported (yet).
+* Twisted_ 10.x. We develop on 10.2.
+* Boto_ 2.0 or higher.
+
+The easiest way to satisfy these is to create your virtualenv_, switch to
+it, and run the following::
+
+    pip install twisted boto
+
+Configuration
+-------------
+
+.. note::
+    To be written once we have a better feel for the settings and
+    configuration involved.
