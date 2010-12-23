@@ -105,6 +105,12 @@ a *Pull Request* to us via the aptly named **Pull Request** on your fork's
 project page. See `GitHub's guide to forking`_. It's quick and easy, we
 promise.
 
+"I'm stumped, help!"
+--------------------
+
+The best way to get help right now is to submit an issue on the `issue tracker`_.
+This is useful for questions, suggestions, and bugs.
+
 Contributions are BSD-licensed
 ------------------------------
 
