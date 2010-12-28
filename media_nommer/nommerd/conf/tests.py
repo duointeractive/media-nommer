@@ -2,7 +2,7 @@ import unittest
 from media_nommer.nommerd.conf import SettingsStore
 from media_nommer.nommerd.conf import default_settings
 
-class SettingsTestTest(unittest.TestCase):
+class SettingsTests(unittest.TestCase):
     def setUp(self):
         self.settings = SettingsStore()
 
