@@ -10,4 +10,9 @@ Blah blah blah.
 Obtaining the source
 --------------------
 
-blah.
+NAME
+DESCRIPTION
+AWS_ACCESS_KEY_ID
+AWS_SECRET_ACCESS_KEY
+S3_IN_BUCKET
+S3_OUT_BUCKET
