@@ -41,6 +41,7 @@ def threaded_check_s3_in_buckets():
     global NOMMER_INSTANCES
     for nommer in NOMMER_INSTANCES:
         print "Nommer", nommer
+        nommer.sync_queue_with_db()
 
 def callback_check_s3_in_buckets(x):
     log.msg("Incoming queue checking cycle complete.")
@@ -56,4 +57,4 @@ def task_check_s3_in_buckets():
     #reactor.callInThread(threaded_check_s3_in_buckets)
     d = threads.deferToThread(threaded_check_s3_in_buckets)
     d.addCallback(callback_check_s3_in_buckets)
-task.LoopingCall(task_check_s3_in_buckets).start(3.0, now=False)
+task.LoopingCall(task_check_s3_in_buckets).start(30, now=True)
