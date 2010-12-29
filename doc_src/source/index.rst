@@ -39,15 +39,15 @@ Documentation
    
    introduction
    installation
-   settings
+   feederd
    hacking
    
-API Reference
--------------
+Reference
+---------
 
 .. toctree::
-   :maxdepth: 2
-   
+   :maxdepth: 1
+
    apiref/index
 
 Indices and tables

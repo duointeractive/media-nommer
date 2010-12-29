@@ -42,10 +42,3 @@ The easiest way to satisfy these is to create your virtualenv_, switch to
 it, and run the following::
 
     pip install twisted boto
-
-Configuration
--------------
-
-.. note::
-    To be written once we have a better feel for the settings and
-    configuration involved.

@@ -11,10 +11,13 @@
 
 .. _git: http://git-scm.com/
 .. _FFmpeg: http://www.ffmpeg.org/
+.. _Supervisor: http://supervisord.org/
 
 .. _GitHub: https://github.com/
 .. _EC2: http://aws.amazon.com/ec2/
 .. _S3: http://aws.amazon.com/s3/
+.. _SQS: http://aws.amazon.com/sqs/
+.. _SimpleDB: http://aws.amazon.com/simpledb/
 .. _CloudFront: http://aws.amazon.com/cloudfront/
 .. _Amazon AWS: http://aws.amazon.com/
 
