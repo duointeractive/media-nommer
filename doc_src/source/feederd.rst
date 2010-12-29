@@ -133,6 +133,9 @@ current working directories, which will have the same affect.
 Settings
 ========
 
+The following directives may be included in your :file:`nomconf.py` (or
+whatever custom name you chose).
+
 WORKFLOWS
 ---------
 
