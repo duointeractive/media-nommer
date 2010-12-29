@@ -14,7 +14,6 @@ from twisted.application import internet
 from twisted.web.server import Site
 
 from media_nommer.nommerd.conf import settings
-from media_nommer.nommerd import interval_tasks
 from media_nommer.nommerd.exceptions import NoConfigFileException
 from media_nommer.nommerd.web.urls import URL_ROOT
 
@@ -46,11 +45,13 @@ class WebApiServiceMaker(object):
         structure module.
         """
         self.load_settings(options)
+        self.start_tasks()
         return internet.TCPServer(int(options['port']), Site(URL_ROOT))
 
     def load_settings(self, options):
         """
-        Loads 
+        Loads user settings into the global store at 
+        media_nommer.nommerd.conf.settings
         """
         # This is the value given with --config, and should be a python module
         # on their sys.path, minus the .py extension. A FQPN.
@@ -68,6 +69,13 @@ class WebApiServiceMaker(object):
         # Now that the user's settings have been imported, populate the
         # global settings object and override defaults with the user's values.
         settings.update_settings_from_module(user_settings)
+
+    def start_tasks(self):
+        """
+        Tasks are started by importing the interval_tasks module. Only do this
+        once the settings have been loaded by self.load_settings().
+        """
+        from media_nommer.nommerd import interval_tasks
 
 # Now construct an object which *provides* the relevant interfaces
 # The name of this variable is irrelevant, as long as there is *some*

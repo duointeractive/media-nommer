@@ -31,7 +31,9 @@ class BaseNommer(object):
         # Make sure that all required settings are present.
         self.check_for_required_settings()
         # Start as a None value so we can lazy load.
-        self._s3_connection = None
+        self._aws_s3_connection = None
+        # Start as a None value so we can lazy load.
+        self._aws_sdb_connection = None
 
     def check_for_required_settings(self):
         """
@@ -50,19 +52,34 @@ class BaseNommer(object):
                 raise NommerConfigException(msg)
 
     @property
-    def s3_connection(self):
+    def aws_s3_connection(self):
         """
         Lazy-loading of the S3 boto connection. Refer to this instead of
-        referencing self._s3_connection directly.
+        referencing self._aws_s3_connection directly.
         
         Returns:
             A boto connection to Amazon's S3 interface.
         """
-        if not self._s3_connection:
-            self._s3_connection = boto.connect_s3(
+        if not self._aws_s3_connection:
+            self._aws_s3_connection = boto.connect_s3(
                                     self.CONFIG['AWS_ACCESS_KEY_ID'],
                                     self.CONFIG['AWS_SECRET_ACCESS_KEY'])
-        return self._s3_connection
+        return self._aws_s3_connection
+
+    @property
+    def aws_sdb_connection(self):
+        """
+        Lazy-loading of the SimpleDB boto connection. Refer to this instead of
+        referencing self._aws_sdb_connection directly.
+        
+        Returns:
+            A boto connection to Amazon's SimpleDB interface.
+        """
+        if not self._aws_sdb_connection:
+            self._aws_sdb_connection = boto.connect_sdb(
+                                    self.CONFIG['AWS_ACCESS_KEY_ID'],
+                                    self.CONFIG['AWS_SECRET_ACCESS_KEY'])
+        return self._aws_sdb_connection
 
     def get_s3_in_bucket_keys(self):
         """
@@ -73,5 +90,21 @@ class BaseNommer(object):
             an iterable object that will let you gracefully iterate over large
             numbers of keys.
         """
-        bucket = self.s3_connection.create_bucket(self.CONFIG['S3_IN_BUCKET'])
+        bucket = self.aws_s3_connection.create_bucket(self.CONFIG['S3_IN_BUCKET'])
         return bucket.list()
+
+    def get_sdb_domain_name(self):
+        """
+        Returns:
+            The AWS SimpleDB domain name for this workflow. Based off of 
+            the NAME setting.
+        """
+        name = self.CONFIG['NAME']
+        return 'nommer_%s' % name
+
+    def get_sdb_domain(self):
+        """
+        Returns:
+            The SimpleDB domain for this workflow.
+        """
+        return self.aws_sdb_connection.create_domain(self.get_sdb_domain_name())
