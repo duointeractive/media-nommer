@@ -5,10 +5,13 @@
 Settings
 ========
 
-Blah blah blah.
+General settings
+----------------
 
-Obtaining the source
---------------------
+WORKFLOWS
+
+Workflow config
+---------------
 
 NAME
 DESCRIPTION
@@ -16,3 +19,8 @@ AWS_ACCESS_KEY_ID
 AWS_SECRET_ACCESS_KEY
 S3_IN_BUCKET
 S3_OUT_BUCKET
+
+EC2 FFmpeg nommer specific
+--------------------------
+
+SQS_QUEUE_NAME
