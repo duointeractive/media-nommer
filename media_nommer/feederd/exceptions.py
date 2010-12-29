@@ -1,8 +1,8 @@
 """
-Contains some general exceptions specific to the nommerd daemon.
+Contains some general exceptions specific to the feederd daemon.
 """
 
-class NommerDaemonException(Exception):
+class feederdaemonException(Exception):
     """
     Exception: Serves as the base exception that other service-related 
     exception objects are sub-classed from.
@@ -13,8 +13,8 @@ class NommerDaemonException(Exception):
     def __str__(self):
         return repr(self.message)
 
-class NoConfigFileException(NommerDaemonException):
+class NoConfigFileException(feederdaemonException):
     """
-    Raised when a nommerd config module can't be found.
+    Raised when a feederd config module can't be found.
     """
     pass

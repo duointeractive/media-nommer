@@ -1,6 +1,6 @@
 import unittest
-from media_nommer.nommerd.conf import SettingsStore
-from media_nommer.nommerd.conf import default_settings
+from media_nommer.feederd.conf import SettingsStore
+from media_nommer.feederd.conf import default_settings
 
 class SettingsTests(unittest.TestCase):
     def setUp(self):

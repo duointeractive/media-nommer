@@ -44,24 +44,24 @@ Intelligent distributed encoding requires a director or orchestrator to keep
 everything running as it should. Since we've targeted near-infinite scalability
 as a goal, we need to be able to hand out media to external services, as well
 as scale our own EC2_ + FFmpeg_ instances up and down to meet demand. This is
-where the :py:obj:`nommerd <media_nommer.nommerd>` daemon comes in.
+where the :py:obj:`feederd <media_nommer.feederd>` daemon comes in.
 
-The nommerd manages the various *Nommers*, which are classes that manage the
+The feederd manages the various *Nommers*, which are classes that manage the
 encoding service they abstract. For example, we have an EC2FFmpegNommer,
-as well as an EncodingDotComNommer. Each of these has methods that lets nommerd
+as well as an EncodingDotComNommer. Each of these has methods that lets feederd
 submit encoding jobs, receive notification of their success/failure, and
 deal with the output.
 
-nommerd also implements a simple JSON-based API for your custom software to
+feederd also implements a simple JSON-based API for your custom software to
 query for pending or current encoding job states. 
 
 And finally, upon completion of an encoding job, you may optionally have
-nommerd ping you back at a specified URL.
+feederd ping you back at a specified URL.
 
-That's a lot of nommerd
+That's a lot of feederd
 -----------------------
 
-You'll notice that we mention nommerd pretty frequently. We could have done
+You'll notice that we mention feederd pretty frequently. We could have done
 without this guy if we went with a de-centralized EC2_ + FFmpeg_ setup, but
 then we lose a lot of ability to blend Amazon AWS-based encoding with
 external encoding.
