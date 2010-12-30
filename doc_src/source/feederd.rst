@@ -6,12 +6,15 @@
 feederd
 =======
 
-feederd is a Twisted_ daemon that manages the whole encoding process. It does
-no encoding itself, but monitors incoming S3_ buckets, creates SQS_ queue
-entries, and tracks job state in SimpleDB_. In the case of Nommers like
-:py:class:`EC2FFmpegNommer <media_nommer.nommers.ec2_ffmpeg.nommer.EC2FFmpegNommer>`,
-that use EC2_ nodes for horsepower, it will spawn and terminates said instances
-based on work load.
+`feederd` is a Twisted_ daemon that orchestrates encoding workflows that involve
+monitoring a filesystem, FTP, S3, or other protocols for new files needing
+encoding. It does no encoding itself, but watches for incoming media, and uses
+our underlying nommer API to launch the encoding jobs.
+
+.. tip::
+    Usage of `feederd` is entirely optional. It is an easy way to get
+    drag-and-drop encoding going, but you may also use the underlying APIs
+    directly in your own applications.
 
 Installation
 ============
@@ -51,24 +54,29 @@ the following:
 
 .. code-block:: python
 
+    # The following AWS credentials are used for accessing SQS and SimpleDB.
+    # For media source and destinations, other S3 accounts may be used.
+    AWS_ACCESS_KEY_ID = 'XXXXXXXXXXXXXXXXXXXX'
+    AWS_SECRET_ACCESS_KEY = 'YYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYY'
+
+    # The SQS queue to use for storing encoding state info.
+    SQS_QUEUE_NAME = 'media_nommer'
+    
+    # The SimpleDB domain name for storing encoding job state in.
+    SIMPLEDB_DOMAIN_NAME = 'media_nommer'
+
     # Example configuration for a basic EC2+FFmpeg workflow.
     BASIC_S3_WORKFLOW = {
         # FQPN for the Nommer class.
         'NOMMER': 'media_nommer.nommers.ec2_ffmpeg.EC2FFmpegNommer',
         # Unique identifier for this workflow.
-        # Alpha-numeric and underscores only.
         'NAME': 'basic_s3_workflow',
         # A description for some UI elements and commands.
         'DESCRIPTION': 'An example workflow',
-        # Your AWS credentials.
-        'AWS_ACCESS_KEY_ID': 'XXXXXXXXXXXXXXXXXXXX',
-        'AWS_SECRET_ACCESS_KEY': 'YYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYY',
         # The S3 bucket to monitor for incoming media files to encode.
-        'S3_IN_BUCKET': 'nommer_in',
+        'MEDIA_SOURCE': 's3://YOUR_AWS_KEY_ID:YOUR_AWS_SECRET_KEY@nommer_in',
         # The bucket to place encoded files in.
-        'S3_OUT_BUCKET': 'nommer_out',
-        # The SQS queue name for your EC2 nodes to use for scheduling.
-        'SQS_QUEUE_NAME': 'basic_s3_workflow',
+        'MEDIA_DESTINATION': 's3://YOUR_AWS_KEY_ID:YOUR_AWS_SECRET_KEY@nommer_out',
     }
 
     # A tuple with all of your workflow dicts in it. One feederd process can
@@ -136,6 +144,28 @@ Settings
 The following directives may be included in your :file:`nomconf.py` (or
 whatever custom name you chose).
 
+AWS_ACCESS_KEY_ID
+-----------------
+
+The AWS id for the account that will queue encoding jobs in SimpleDB_, and
+track job state in SimpleDB_.
+
+AWS_SECRET_ACCESS_KEY
+---------------------
+
+The AWS key for the account that will queue encoding jobs in SimpleDB_, and
+track job state in SimpleDB_.
+
+SQS_QUEUE_NAME
+--------------
+
+The SQS_ queue used to schedule encoding jobs with.
+
+SIMPLEDB_DOMAIN_NAME
+--------------------
+
+The SimpleDB_ domain name for storing encoding job state in.
+
 WORKFLOWS
 ---------
 
@@ -151,13 +181,8 @@ cost of potentially longer delays in some operations.
         {
             'NOMMER': 'media_nommer.nommers.ec2_ffmpeg.EC2FFmpegNommer',
             'NAME': 'basic_s3_workflow',
-            'DESCRIPTION': 'An example workflow',
-            'AWS_ACCESS_KEY_ID': 'XXXXXXXXXXXXXXXXXXXX',
-            'AWS_SECRET_ACCESS_KEY': 'YYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYY',
-            'S3_IN_BUCKET': 'nommer_in',
-            'S3_OUT_BUCKET': 'nommer_out',
-            # Required for EC2FFmpegNommer
-            'SQS_QUEUE_NAME': 'basic_s3_workflow',
+            'MEDIA_SOURCE': 's3://YOUR_AWS_KEY_ID:YOUR_AWS_SECRET_KEY@nommer_in',
+            'MEDIA_DESTINATION': 's3://YOUR_AWS_KEY_ID:YOUR_AWS_SECRET_KEY@nommer_out',
         },
     )
 
@@ -175,39 +200,24 @@ Each of these handles encoding differently, sometimes drastically so.
 NAME
 ~~~~
 
-Unique identifier for this workflow. This is used in generating SimpleDB_
-domains, along with a few other things.
+Unique identifier for this workflow. This is used for identification in
+log files, and querying of jobs in SimpleDB_ and SQS_.
 
-DESCRIPTION
-~~~~~~~~~~~
+.. _feederd-settings-media_source:
 
-An *optional* description, which is used in some of the management utilities.
-
-AWS_ACCESS_KEY_ID
-~~~~~~~~~~~~~~~~~
-
-Your `Amazon AWS`_ access key id. Obtain this from your account details page
-in the AWS management console.
-
-AWS_SECRET_ACCESS_KEY
-~~~~~~~~~~~~~~~~~~~~~
-
-Your `Amazon AWS`_ access key. Obtain this from your account details page
-in the AWS management console.
-
-S3_IN_BUCKET
+MEDIA_SOURCE
 ~~~~~~~~~~~~
 
-The S3_ bucket to monitor for incoming media files that need to be encoded.
+For workflows that monitor a location somewhere for files to encode, this is
+the URI of said location to monitor. Here are some example values:
 
-S3_OUT_BUCKET
-~~~~~~~~~~~~~
+* ``'s3://AWS_KEY_ID:AWS_SECRET_KEY@nommer_in'``
+* ``'ftp://someuser@somehost:/some/loc'`` *(Not implemented yet)*
+* ``'file://path/to/some/dir'`` *(Not implemented yet)*
 
-The S3_ bucket to place all finalized, encoded media in.
+MEDIA_DESTINATION
+~~~~~~~~~~~~~~~~~
 
-SQS_QUEUE_NAME
-~~~~~~~~~~~~~~
-
-The SQS_ queue used to schedule encoding jobs for the EC2_ nodes. Currently
-only applies to 
-:py:class:`EC2FFmpegNommer <media_nommer.nommers.ec2_ffmpeg.nommer.EC2FFmpegNommer>`.
+The final location for encoded media (along with the master file from which
+the encodings were made) should end up. This follows the same format as
+:ref:`feederd-settings-media_source`.
