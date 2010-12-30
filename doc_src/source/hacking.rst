@@ -27,7 +27,7 @@ faster, easier, and more fun than the traditional patch juggling method.
 If you'd like to skip the whole *forking* ordeal and just get a copy of our
 upstream repository on your machine, you'll probably want to do something like::
 
-    git clone https://gtaylor@github.com/duointeractive/media-nommer.git
+    git clone https://github.com/duointeractive/media-nommer.git
     
 This will leave you with a `media-nommer` directory in your current directory.
 
