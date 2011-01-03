@@ -6,15 +6,10 @@
 feederd
 =======
 
-`feederd` is a Twisted_ daemon that orchestrates encoding workflows that involve
-monitoring a filesystem, FTP, S3, or other protocols for new files needing
-encoding. It does no encoding itself, but watches for incoming media, and uses
-our underlying nommer API to launch the encoding jobs.
-
-.. tip::
-    Usage of `feederd` is entirely optional. It is an easy way to get
-    drag-and-drop encoding going, but you may also use the underlying APIs
-    directly in your own applications.
+`feederd` is a Twisted_ daemon that orchestrates the encoding process. 
+It does no encoding itself. `feederd` primarily manages any EC2_ instances
+that may be needed, or handing off encoding jobs to external encoding
+services.
 
 Installation
 ============
@@ -64,26 +59,6 @@ the following:
     
     # The SimpleDB domain name for storing encoding job state in.
     SIMPLEDB_DOMAIN_NAME = 'media_nommer'
-
-    # Example configuration for a basic EC2+FFmpeg workflow.
-    BASIC_S3_WORKFLOW = {
-        # FQPN for the Nommer class.
-        'NOMMER': 'media_nommer.nommers.ec2_ffmpeg.EC2FFmpegNommer',
-        # Unique identifier for this workflow.
-        'NAME': 'basic_s3_workflow',
-        # A description for some UI elements and commands.
-        'DESCRIPTION': 'An example workflow',
-        # The S3 bucket to monitor for incoming media files to encode.
-        'MEDIA_SOURCE': 's3://YOUR_AWS_KEY_ID:YOUR_AWS_SECRET_KEY@nommer_in',
-        # The bucket to place encoded files in.
-        'MEDIA_DESTINATION': 's3://YOUR_AWS_KEY_ID:YOUR_AWS_SECRET_KEY@nommer_out',
-    }
-
-    # A tuple with all of your workflow dicts in it. One feederd process can
-    # manage multiple workflows at the same time.
-    WORKFLOWS = (
-        BASIC_S3_WORKFLOW,
-    )
 
 See the :ref:`feederd-settings` section for a full run-down of all possible 
 settings.
@@ -147,14 +122,14 @@ whatever custom name you chose).
 AWS_ACCESS_KEY_ID
 -----------------
 
-The AWS id for the account that will queue encoding jobs in SimpleDB_, and
-track job state in SimpleDB_.
+The `Amazon AWS`_ id for the account that will queue encoding jobs in SimpleDB_, 
+and track job state in SimpleDB_.
 
 AWS_SECRET_ACCESS_KEY
 ---------------------
 
-The AWS key for the account that will queue encoding jobs in SimpleDB_, and
-track job state in SimpleDB_.
+The `Amazon AWS`_ key for the account that will queue encoding jobs in SimpleDB_,
+and track job state in SimpleDB_.
 
 SQS_QUEUE_NAME
 --------------
@@ -165,59 +140,3 @@ SIMPLEDB_DOMAIN_NAME
 --------------------
 
 The SimpleDB_ domain name for storing encoding job state in.
-
-WORKFLOWS
----------
-
-Default: ``()`` (Empty tuple)
-
-A tuple of workflow dictionaries. Each dict represents one media encoding
-workflow. A single `feederd` daemon can service multiple workflows, at the
-cost of potentially longer delays in some operations.
-
-.. code-block:: python
-    
-    WORKFLOWS = (
-        {
-            'NOMMER': 'media_nommer.nommers.ec2_ffmpeg.EC2FFmpegNommer',
-            'NAME': 'basic_s3_workflow',
-            'MEDIA_SOURCE': 's3://YOUR_AWS_KEY_ID:YOUR_AWS_SECRET_KEY@nommer_in',
-            'MEDIA_DESTINATION': 's3://YOUR_AWS_KEY_ID:YOUR_AWS_SECRET_KEY@nommer_out',
-        },
-    )
-
-All of the workflow settings are documented below.
-
-NOMMER
-~~~~~~
-
-FQPN of the Nommer class. The current choices are:
-
-* ``'media_nommer.nommers.ec2_ffmpeg.EC2FFmpegNommer'``
-
-Each of these handles encoding differently, sometimes drastically so.
-
-NAME
-~~~~
-
-Unique identifier for this workflow. This is used for identification in
-log files, and querying of jobs in SimpleDB_ and SQS_.
-
-.. _feederd-settings-media_source:
-
-MEDIA_SOURCE
-~~~~~~~~~~~~
-
-For workflows that monitor a location somewhere for files to encode, this is
-the URI of said location to monitor. Here are some example values:
-
-* ``'s3://AWS_KEY_ID:AWS_SECRET_KEY@nommer_in'``
-* ``'ftp://someuser@somehost:/some/loc'`` *(Not implemented yet)*
-* ``'file://path/to/some/dir'`` *(Not implemented yet)*
-
-MEDIA_DESTINATION
-~~~~~~~~~~~~~~~~~
-
-The final location for encoded media (along with the master file from which
-the encodings were made) should end up. This follows the same format as
-:ref:`feederd-settings-media_source`.

@@ -10,3 +10,4 @@ dist
 MANIFEST
 dropin.cache
 nomconf.py
+*.pid

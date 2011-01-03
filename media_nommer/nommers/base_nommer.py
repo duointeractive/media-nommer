@@ -4,7 +4,7 @@ of as a protocol or a foundation to assist in maintaining a consistent API
 between Nommers.
 """
 import datetime
-import boto
+#import boto
 from media_nommer.nommers.exceptions import NommerConfigException
 from media_nommer.nommers import defines
 

@@ -1,10 +1,7 @@
 """
-This twistd plugin is where the feederd is started. In addition to starting
-the TCPServer process, a few other things are tied in like scheduling checks
-of the S3 incoming buckets and determining whether more EC2 nodes are needed.
+This twistd plugin is where the scavengerd is started. 
 
-More documentation about the Twisted plugin system can be found here:
-http://twistedmatrix.com/documents/current/core/howto/plugin.html
+TODO: Document me.
 """
 from zope.interface import implements
 from twisted.python import usage
@@ -13,9 +10,9 @@ from twisted.application.service import IServiceMaker
 from twisted.application import internet
 from twisted.web.server import Site
 
-from media_nommer.feederd.conf import settings
 from media_nommer.utils.conf import NoConfigFileException
-from media_nommer.feederd.web.urls import API
+from media_nommer.feederd.conf import settings
+from media_nommer.feederd.web.urls import URL_ROOT
 
 class Options(usage.Options):
     """
@@ -46,7 +43,7 @@ class WebApiServiceMaker(object):
         """
         self.load_settings(options)
         self.start_tasks()
-        return internet.TCPServer(int(options['port']), Site(API))
+        return internet.TCPServer(int(options['port']), Site(URL_ROOT))
 
     def load_settings(self, options):
         """
