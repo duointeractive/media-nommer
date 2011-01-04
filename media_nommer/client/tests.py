@@ -9,13 +9,13 @@ class JobSubmitTests(unittest.TestCase):
             AWS_ACCESS_KEY_ID,
             AWS_SECRET_ACCESS_KEY,
             'some_bucket',
-            'some_file'
+            'subdir/some_file.mpg'
         )
         self.dest_path = 's3://%s:%s@%s/%s' % (
             AWS_ACCESS_KEY_ID,
             AWS_SECRET_ACCESS_KEY,
             'some_bucket2',
-            'some_dir'
+            'subdir/some_file2.mp4'
         )
 
     def test_job_submit(self):
