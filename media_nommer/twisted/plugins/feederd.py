@@ -13,7 +13,7 @@ from twisted.application.service import IServiceMaker
 from twisted.application import internet
 from twisted.web.server import Site
 
-from media_nommer.feederd.conf import settings
+from media_nommer.conf import settings
 from media_nommer.utils.conf import NoConfigFileException
 from media_nommer.feederd.web.urls import API
 

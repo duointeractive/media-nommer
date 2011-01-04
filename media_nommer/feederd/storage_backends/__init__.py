@@ -2,7 +2,7 @@
 Helper methods for the backend system. Only broad, generic things should be
 present in this module. Anything other than the utter basics should be here.
 """
-from media_nommer.feederd.conf import settings
+from media_nommer.conf import settings
 from media_nommer.utils.mod_importing import import_class_from_module_string
 
 def get_storage_backend_from_protocol(protocol):

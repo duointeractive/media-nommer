@@ -1,6 +1,6 @@
 import unittest
-from media_nommer.nommers.base_nommer import BaseNommer
-from media_nommer.nommers.exceptions import NommerConfigException
+from media_nommer.nommerd.nommers.base_nommer import BaseNommer
+from media_nommer.nommerd.nommers.exceptions import NommerConfigException
 
 # This is an example set of settings to make testing a little less repetitive.
 EXAMPLE_WORKFLOW_SETTINGS = {

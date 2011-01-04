@@ -4,7 +4,7 @@ the time the server is started.
 """
 from twisted.internet import task, threads, reactor
 from twisted.python import log
-from media_nommer.feederd.conf import settings
+from media_nommer.conf import settings
 
 def run_every_second():
     """

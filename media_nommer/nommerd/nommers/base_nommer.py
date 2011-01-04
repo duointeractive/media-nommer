@@ -5,8 +5,8 @@ between Nommers.
 """
 import datetime
 #import boto
-from media_nommer.nommers.exceptions import NommerConfigException
-from media_nommer.nommers import defines
+from media_nommer.nommerd.nommers.exceptions import NommerConfigException
+from media_nommer.nommerd.nommers import defines
 
 class BaseNommer(object):
     """
