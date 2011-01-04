@@ -1,6 +1,6 @@
 from media_nommer.utils.views import BaseView
 from media_nommer.utils.uri_parsing import get_values_from_media_uri, InvalidUri
-from media_nommer.feederd.backends import get_storage_backend_from_protocol
+from media_nommer.feederd.storage_backends import get_storage_backend_from_protocol
 
 class JobSubmitView(BaseView):
     def view(self):

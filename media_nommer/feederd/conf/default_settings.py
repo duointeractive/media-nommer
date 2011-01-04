@@ -20,5 +20,5 @@ NOMMERS = ()
 # Storage backends. The protocol is the key, the value is the class used to
 # access said protocol.
 STORAGE_BACKENDS = {
-    's3': 'media_nommer.feederd.backends.s3.S3Backend',
+    's3': 'media_nommer.feederd.storage_backends.s3.S3Backend',
 }

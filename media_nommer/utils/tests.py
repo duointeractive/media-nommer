@@ -52,7 +52,7 @@ class ModImportingTests(unittest.TestCase):
 
 class MediaUriParsingTests(unittest.TestCase):
     """
-    Tests for media_nommer.feederd.backends.get_values_from_media_uri()
+    Tests for media_nommer.utils.uri_parsing.get_values_from_media_uri()
     """
     def test_valid_uri_parsing(self):
         """
