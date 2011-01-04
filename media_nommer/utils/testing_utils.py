@@ -6,9 +6,9 @@ import os
 try:
     AWS_ACCESS_KEY_ID = os.environ['MNOM_TEST_AWS_ACCESS_KEY_ID']
 except KeyError:
-    raise Exception("No AWS_ACCESS_KEY_ID environment variable found. Please set it and try again.")
+    raise Exception("No MNOM_TEST_AWS_ACCESS_KEY_ID environment variable found. Please set it and try again.")
 
-try:    
+try:
     AWS_SECRET_ACCESS_KEY = os.environ['MNOM_TEST_AWS_SECRET_ACCESS_KEY']
 except KeyError:
-    print Exception("No AWS_SECRET_ACCESS_KEY environment variable found. Please set it and try again.")
+    print Exception("No MNOM_TEST_AWS_SECRET_ACCESS_KEY environment variable found. Please set it and try again.")
