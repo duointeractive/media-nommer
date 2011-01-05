@@ -8,29 +8,30 @@ from twisted.python import log
 from media_nommer.conf import settings
 from media_nommer.core.job_state_backends import get_default_backend
 
-def run_every_second():
+def task_check_for_new_jobs():
     """
-    Just an example task.
+    Looks at the number of currently active threads and compares it against
+    the MAX_ENCODING_JOBS_PER_EC2_INSTANCE setting. If we are under the max,
+    fire up another thread for encoding additional job(s). 
     """
     num_active_threads = len(reactor.getThreadPool().working)
     max_threads = settings.MAX_ENCODING_JOBS_PER_EC2_INSTANCE
     if num_active_threads < max_threads:
+        # We have more room for encoding threads, determine how many.
         num_msgs_to_get = max(0, max_threads - num_active_threads)
-        print "Starting as many as", num_msgs_to_get
+        print "Job check tic. Starting as many as", num_msgs_to_get
+        # Reference to our instantiated job state backend.
         job_state_backend = get_default_backend()
+        # This is an iterable of BaseEncodingJob sub-classed instances for
+        # each job returned from the queue.
         jobs = job_state_backend.pop_job_from_queue(num_msgs_to_get)
-task.LoopingCall(run_every_second).start(10, now=False)
 
-def threaded_check_job_queue():
-    """
-    Checks all S3 In Buckets for incoming files to encode.
-    """
-    #print "STARTING CHECK"
-    #time.sleep(5)
-    #print "FINISHED CHECK"
-    pass
+        for job in jobs:
+            # For each job returned, render in another thread.
+            reactor.callInThread(task_render_job, job)
+task.LoopingCall(task_check_for_new_jobs).start(10, now=False)
 
-def task_check_job_queue():
+def task_render_job(job):
     """
     Calls the incoming bucket checking functions in a separate thread to prevent
     this long call from blocking us.
@@ -38,7 +39,4 @@ def task_check_job_queue():
     TODO: Figure out how to not spawn a new thread with each loop of this.
     That is expensive. Earlier attempts failed, please be my guest.
     """
-    reactor.callInThread(threaded_check_job_queue)
-    #d = threads.deferToThread(threaded_check_job_queue)
-    #d.addCallback(callback_check_s3_in_buckets)
-task.LoopingCall(task_check_job_queue).start(10, now=True)
+    print "JOB THREAD", job.unique_id
