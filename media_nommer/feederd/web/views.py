@@ -3,6 +3,7 @@ import simplejson
 from media_nommer.utils.views import BaseView
 from media_nommer.utils.uri_parsing import get_values_from_media_uri, InvalidUri
 #from media_nommer.core.storage_backends import get_storage_backend_from_protocol
+from media_nommer.conf import settings
 from media_nommer.core.job_state_backends import EncodingJob
 
 class JobSubmitView(BaseView):
@@ -11,22 +12,36 @@ class JobSubmitView(BaseView):
         print "KW", self.kwargs
         print "CONT", self.context
 
-        source_path = self.request.args['source_path'][0]
-        dest_path = self.request.args['dest_path'][0]
-        notify_url = self.request.args['notify_url'][0]
-        preset = self.request.args['preset'][0]
-        job_options = cgi.escape(self.request.args['job_options'][0])
+        source_path = cgi.escape(self.request.args['source_path'][0])
+        dest_path = cgi.escape(self.request.args['dest_path'][0])
+        notify_url = cgi.escape(self.request.args['notify_url'][0])
+        preset = cgi.escape(self.request.args['preset'][0])
+        user_job_options = cgi.escape(self.request.args['job_options'][0])
+        user_job_options = simplejson.loads(user_job_options)
 
         print "SOURCE", source_path
         print "DEST", dest_path
         print "NOTIFY", notify_url
-        print "OPTIONS", simplejson.loads(job_options)
+        print "OPTIONS", user_job_options
+
+        # Retrieve the given preset from nomconf.
+        preset_dict = settings.PRESETS[preset]
+        # Determine the nommer based on the preset.
+        nommer = preset_dict['nommer']
+        # Get the preset's job options dict.
+        job_options = preset_dict['options']
+        # Override preset's options with user-specified values.
+        job_options.update(user_job_options)
+        print "NEW OPTS", job_options
+
         #values = get_values_from_media_uri(source_path)
         #print "VALUES", values
         #print "BACKEND", get_storage_backend_from_protocol(values['protocol'])
 
-        job = EncodingJob(source_path, dest_path, preset, job_options,
+        # Create a new job and save it to the DB/queue.
+        job = EncodingJob(source_path, dest_path, nommer, job_options,
                           notify_url=notify_url)
         unique_job_id = job.save()
 
+        # This is serialized and returned to the user.
         self.context = {'success': True, 'job_id': unique_job_id}

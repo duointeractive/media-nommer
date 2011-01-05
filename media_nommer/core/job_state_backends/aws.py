@@ -46,10 +46,11 @@ class AWSEncodingJob(BaseEncodingJob):
 
         job['source_path'] = self.source_path
         job['dest_path'] = self.dest_path
-        job['preset'] = self.preset
+        job['nommer'] = self.nommer
         job['job_options'] = simplejson.dumps(self.job_options)
         job['job_state'] = self.job_state
         job['last_modified_dtime'] = now_dtime
+        print "PRE-SAVE ITEM", job
         job.save()
 
         if is_new_job:
@@ -175,7 +176,7 @@ class AWSJobStateBackend(BaseJobStateBackend):
         job = AWSEncodingJob(
             item['source_path'],
             item['dest_path'],
-            item['preset'],
+            item['nommer'],
             item['job_options'],
             unique_id=item['unique_id'],
             job_state=item['job_state'],

@@ -6,16 +6,20 @@ import simplejson
 from media_nommer.core.job_state_backends import get_default_backend
 
 class BaseEncodingJob(object):
-    def __init__(self, source_path, dest_path, preset, job_options,
+    def __init__(self, source_path, dest_path, nommer, job_options,
                  unique_id=None, job_state=None, notify_url=None):
         self.source_path = source_path
         self.dest_path = dest_path
-        self.preset = preset
-        self.job_options = simplejson.loads(job_options)
+        self.nommer = nommer
         self.unique_id = unique_id
         self.job_state = job_state
         # Reference to the global job state backend instance.
         self.backend = get_default_backend()
+
+        if isinstance(job_options, basestring):
+            self.job_options = simplejson.loads(job_options)
+        else:
+            self.job_options = job_options
 
     def save(self):
         """
