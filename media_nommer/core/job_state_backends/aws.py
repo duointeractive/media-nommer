@@ -16,7 +16,7 @@ class AWSEncodingJob(BaseEncodingJob):
         random_salt = random.random()
         combo_str = "%s%s%s%s" % (self.source_path,
                                   self.dest_path,
-                                  str(self.job_options),
+                                  repr(self.job_options),
                                   random_salt)
         return hashlib.sha512(combo_str).hexdigest()[:50]
 
@@ -53,9 +53,11 @@ class AWSEncodingJob(BaseEncodingJob):
         job['job_state'] = self.job_state
         job['last_modified_dtime'] = now_dtime
         print "PRE-SAVE ITEM", job
+
         job.save()
 
         if is_new_job:
+            print "QUEING", job['unique_id']
             sqs_message = Message()
             sqs_message.set_body(job['unique_id'])
             self.backend.aws_sqs_queue.write(sqs_message)
@@ -174,6 +176,8 @@ class AWSJobStateBackend(BaseJobStateBackend):
 
     def get_job_object_from_id(self, unique_id):
         item = self.aws_sdb_domain.get_item(unique_id)
+        if item is None:
+            raise Exception('AWSJobStateBackend.get_job_object_from_id(): No unique ID match for: %s' % unique_id)
         print "ITEM", item
         job = AWSEncodingJob(
             item['source_path'],

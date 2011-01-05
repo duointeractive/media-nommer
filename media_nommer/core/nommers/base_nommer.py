@@ -3,6 +3,7 @@ Classes in this module serve as a basis for Nommers. This should be thought
 of as a protocol or a foundation to assist in maintaining a consistent API
 between Nommers.
 """
+from media_nommer.core.storage_backends import get_storage_backend_for_uri
 
 class BaseNommer(object):
     """
@@ -12,3 +13,10 @@ class BaseNommer(object):
     """
     def __init__(self, job):
         self.job = job
+
+    def download_source_file(self):
+        file_uri = self.job.source_path
+        print "ATTEMPTING TO DOWNLOAD", file_uri
+        storage = get_storage_backend_for_uri(file_uri)
+        storage.download_file(file_uri)
+        print "DOWNLOADED"

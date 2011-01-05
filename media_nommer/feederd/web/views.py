@@ -2,7 +2,6 @@ import cgi
 import simplejson
 from media_nommer.utils.views import BaseView
 from media_nommer.utils.uri_parsing import get_values_from_media_uri, InvalidUri
-#from media_nommer.core.storage_backends import get_storage_backend_from_protocol
 from media_nommer.conf import settings
 from media_nommer.core.job_state_backends import EncodingJob
 
@@ -33,10 +32,6 @@ class JobSubmitView(BaseView):
         # Override preset's options with user-specified values.
         job_options.update(user_job_options)
         print "NEW OPTS", job_options
-
-        #values = get_values_from_media_uri(source_path)
-        #print "VALUES", values
-        #print "BACKEND", get_storage_backend_from_protocol(values['protocol'])
 
         # Create a new job and save it to the DB/queue.
         job = EncodingJob(source_path, dest_path, nommer, job_options,

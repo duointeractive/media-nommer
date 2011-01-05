@@ -42,4 +42,4 @@ def task_check_for_new_jobs():
         for job in jobs:
             # For each job returned, render in another thread.
             reactor.callInThread(task_render_job, job)
-task.LoopingCall(task_check_for_new_jobs).start(10, now=True)
+task.LoopingCall(task_check_for_new_jobs).start(30, now=True)
