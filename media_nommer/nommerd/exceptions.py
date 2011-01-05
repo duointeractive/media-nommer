@@ -1,3 +1,3 @@
 """
-Contains some general exceptions specific to the scavengerd daemon.
+Contains some general exceptions specific to the nommerd daemon.
 """

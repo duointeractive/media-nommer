@@ -27,7 +27,6 @@ class Options(usage.Options):
     optParameters = [
          ["port", "p", 8002, "The port number to listen on."],
          ["config", "c", "nomconf", "Config file"],
-         ["pidfile", "i", "nommerd.pid", "PID file"]
     ]
 
 
@@ -76,7 +75,7 @@ class WebApiServiceMaker(object):
         Tasks are started by importing the interval_tasks module. Only do this
         once the settings have been loaded by self.load_settings().
         """
-        from media_nommer.feederd import interval_tasks
+        from media_nommer.nommerd import interval_tasks
 
 # Now construct an object which *provides* the relevant interfaces
 # The name of this variable is irrelevant, as long as there is *some*
