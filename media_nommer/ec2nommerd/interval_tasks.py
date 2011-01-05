@@ -8,6 +8,19 @@ from twisted.python import log
 from media_nommer.conf import settings
 from media_nommer.core.job_state_backends import get_default_backend
 
+def task_render_job(job):
+    """
+    Calls the incoming bucket checking functions in a separate thread to prevent
+    this long call from blocking us.
+    
+    TODO: Figure out how to not spawn a new thread with each loop of this.
+    That is expensive. Earlier attempts failed, please be my guest.
+    """
+    print "JOB OBJ", job
+    print "JOB SOURCE", job.source_path
+    job.set_job_state('PENDING')
+    Nommer = job.nommer.start_encoding()
+
 def task_check_for_new_jobs():
     """
     Looks at the number of currently active threads and compares it against
@@ -29,14 +42,4 @@ def task_check_for_new_jobs():
         for job in jobs:
             # For each job returned, render in another thread.
             reactor.callInThread(task_render_job, job)
-task.LoopingCall(task_check_for_new_jobs).start(10, now=False)
-
-def task_render_job(job):
-    """
-    Calls the incoming bucket checking functions in a separate thread to prevent
-    this long call from blocking us.
-    
-    TODO: Figure out how to not spawn a new thread with each loop of this.
-    That is expensive. Earlier attempts failed, please be my guest.
-    """
-    print "JOB THREAD", job.unique_id
+task.LoopingCall(task_check_for_new_jobs).start(10, now=True)

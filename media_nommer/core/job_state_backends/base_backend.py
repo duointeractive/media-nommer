@@ -4,13 +4,15 @@ job state backends should sub-class JobStateBackend.
 """
 import simplejson
 from media_nommer.core.job_state_backends import get_default_backend
+from media_nommer.utils.mod_importing import import_class_from_module_string
 
 class BaseEncodingJob(object):
-    def __init__(self, source_path, dest_path, nommer, job_options,
+    def __init__(self, source_path, dest_path, nommer_str, job_options,
                  unique_id=None, job_state=None, notify_url=None):
         self.source_path = source_path
         self.dest_path = dest_path
-        self.nommer = nommer
+        # __import__ doesn't like unicode, cast this to a str.
+        self.nommer_str = str(nommer_str)
         self.unique_id = unique_id
         self.job_state = job_state
         # Reference to the global job state backend instance.
@@ -20,6 +22,27 @@ class BaseEncodingJob(object):
             self.job_options = simplejson.loads(job_options)
         else:
             self.job_options = job_options
+
+    def set_job_state(self, job_state, save=True):
+        """
+        Sets the job's state and saves it to the backend.
+        """
+        if not self.backend.JOB_STATES.has_key(job_state):
+            raise Exception('Invalid job state: %s' % job_state)
+
+        self.job_state = self.backend.JOB_STATES[job_state]
+
+        if save:
+            # Only save if asked, in case we need to save queries.
+            self.save()
+
+    @property
+    def nommer(self):
+        """
+        Returns the correct Nommer instance for this job.
+        """
+        print "TRYING TO IMPORT", self.nommer_str, type(self.nommer_str)
+        return import_class_from_module_string(self.nommer_str)(self)
 
     def save(self):
         """
@@ -36,7 +59,11 @@ class BaseJobStateBackend(object):
     by default, unless overridden by child classes.
     """
     JOB_STATES = {
-        'PENDING': 'PENDING'
+        'PENDING': 'PENDING',
+        'DOWNLOADING': 'DOWNLOADING',
+        'ENCODING': 'ENCODING',
+        'UPLOADING': 'UPLOADING',
+        'FINISHED': 'FINISHED',
     }
     def __init__(self, *args, **kwargs):
         pass

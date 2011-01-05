@@ -10,4 +10,5 @@ class BaseNommer(object):
     as a foundation. Required methods raise a NotImplemented exception
     by default, unless overridden by child classes.
     """
-    pass
+    def __init__(self, job):
+        self.job = job

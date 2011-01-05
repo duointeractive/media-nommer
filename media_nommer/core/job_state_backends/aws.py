@@ -24,7 +24,7 @@ class AWSEncodingJob(BaseEncodingJob):
         """
         Given an EncodingJob, save it to SimpleDB and SQS. 
         """
-        self.backend.wipe_all_job_data()
+        #self.backend.wipe_all_job_data()
         # Is this a new job that needs creation?
         is_new_job = not self.unique_id
         # Generate this once so our microseconds stay the same from
@@ -42,11 +42,13 @@ class AWSEncodingJob(BaseEncodingJob):
             self.job_state = self.backend.JOB_STATES['PENDING']
         else:
             # Retrieve the existing item for the job.
-            job = self.backend.aws_sdb_domain.get_item(encoding_job.unique_id)
+            job = self.backend.aws_sdb_domain.get_item(self.unique_id)
+            if job is None:
+                raise Exception('AWSEncodingJob.save(): No match found in DB for ID: %s' % self.unique_id)
 
         job['source_path'] = self.source_path
         job['dest_path'] = self.dest_path
-        job['nommer'] = self.nommer
+        job['nommer'] = self.nommer_str
         job['job_options'] = simplejson.dumps(self.job_options)
         job['job_state'] = self.job_state
         job['last_modified_dtime'] = now_dtime
@@ -160,14 +162,14 @@ class AWSJobStateBackend(BaseJobStateBackend):
 
     def pop_job_from_queue(self, num_to_pop):
         messages = self.aws_sqs_queue.get_messages(num_to_pop,
-                                                   visibility_timeout=30)
+                                                   visibility_timeout=1)
 
         jobs = []
         for message in messages:
             unique_id = message.get_body()
             job = self.get_job_object_from_id(unique_id)
             jobs.append(job)
-            message.delete()
+            #message.delete()
         return jobs
 
     def get_job_object_from_id(self, unique_id):
