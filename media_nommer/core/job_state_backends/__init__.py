@@ -18,6 +18,12 @@ def get_default_backend():
         You should not import/instantiate backends directly. use this
         method instead.
     """
+    global __BACKEND_INSTANCE
+
     if not __BACKEND_INSTANCE:
-        __BACKEND_INSTANCE = import_class_from_module_string(settings.JOB_STATE_BACKEND)
+        __BACKEND_INSTANCE = import_class_from_module_string(settings.JOB_STATE_BACKEND)()
+
     return __BACKEND_INSTANCE
+
+# You can import this for convenience.
+EncodingJob = get_default_backend().get_job_class()

@@ -53,7 +53,8 @@ class APIConnection(object):
     ### Begin API call methods ###
     ##############################
 
-    def job_submit(self, source_path, dest_path, job_options, notify_url=None):
+    def job_submit(self, source_path, dest_path, preset, job_options,
+                   notify_url=None):
         """
         Submits an encoding job to feederd. This is an async call, so you may
         want to specify a notify_url for job state notifications to be sent to.
@@ -61,6 +62,7 @@ class APIConnection(object):
         :param str source_path: The path string to the master file to encode.
         :param str dest_path: The path string to where you'd like the encoded 
             files to be saved to.
+        :param str preset: A preset defined in your nomconf.py.
         :param dict job_options: A dictionary with additional job options like 
             bitrates, target encoding formats, etc. These options can vary 
             based on the Nommer and the formats you're asking for.
@@ -73,6 +75,7 @@ class APIConnection(object):
             'source_path': source_path,
             'dest_path': dest_path,
             'notify_url': notify_url,
+            'preset': preset,
             # Note that the many/varied encoding job options appear under
             # their own key, separate from the args/kwargs that job_submit()
             # has for common, important stuff.

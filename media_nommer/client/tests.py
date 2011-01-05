@@ -19,6 +19,9 @@ class JobSubmitTests(unittest.TestCase):
         )
 
     def test_job_submit(self):
-        job_opts = {}
+        preset = 'iphone'
+        job_opts = {'some_option': 'some_val'}
         print "COMEBACK", self.connection.job_submit(self.source_path,
-                                                     self.dest_path, job_opts)
+                                                     self.dest_path,
+                                                     preset,
+                                                     job_opts)
