@@ -80,7 +80,7 @@ class APIConnection(object):
             # Note that the many/varied encoding job options appear under
             # their own key, separate from the args/kwargs that job_submit()
             # has for common, important stuff.
-            'job_options': job_options,
+            'job_options': simplejson.dumps(job_options),
         }
 
         return self._send_request('job/submit', job_data)

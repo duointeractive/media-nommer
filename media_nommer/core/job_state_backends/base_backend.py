@@ -2,6 +2,7 @@
 Contains the base backend class from which all backends are based from. All
 job state backends should sub-class JobStateBackend.
 """
+import simplejson
 from media_nommer.core.job_state_backends import get_default_backend
 
 class BaseEncodingJob(object):
@@ -10,13 +11,18 @@ class BaseEncodingJob(object):
         self.source_path = source_path
         self.dest_path = dest_path
         self.preset = preset
-        self.job_options = job_options
+        self.job_options = simplejson.loads(job_options)
         self.unique_id = unique_id
         self.job_state = job_state
         # Reference to the global job state backend instance.
         self.backend = get_default_backend()
 
     def save(self):
+        """
+        Saves this job to your job state backend, via self.backend.
+        
+        :returns: The job's unique ID.
+        """
         raise NotImplemented()
 
 class BaseJobStateBackend(object):
@@ -68,5 +74,16 @@ class BaseJobStateBackend(object):
     def get_job_class(self):
         """
         Returns a reference to this backend's EncodingJob sub-class.
+        """
+        raise NotImplemented()
+
+    def pop_job_from_queue(self, num_to_pop):
+        """
+        Pops jobs from the queue, returning a list of your backend's 
+        BaseEncodingJob sub-class instances.
+        
+        .. warning: Once popped, jobs are removed from the queue.
+        
+        :returns: A list of your backend's BaseEncodingJob sub-class instances.
         """
         raise NotImplemented()

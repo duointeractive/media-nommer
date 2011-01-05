@@ -19,7 +19,7 @@ from media_nommer.ec2nommerd.web.urls import API
 
 class Options(usage.Options):
     """
-    Some assorted configuration options for the twistd feederd plugin.
+    Some assorted configuration options for the twistd ec2nommerd plugin.
     
     http://twistedmatrix.com/documents/current/api/twisted.python.usage.Options.html
     """

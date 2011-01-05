@@ -5,6 +5,7 @@ SQS for storage.
 import datetime
 import random
 import hashlib
+import simplejson
 import boto
 from boto.sqs.message import Message
 from media_nommer.conf import settings
@@ -38,14 +39,16 @@ class AWSEncodingJob(BaseEncodingJob):
             # Start populating values.
             job['unique_id'] = unique_id
             job['creation_dtime'] = now_dtime
-            job['status'] = self.backend.JOB_STATES['PENDING']
+            self.job_state = self.backend.JOB_STATES['PENDING']
         else:
             # Retrieve the existing item for the job.
             job = self.backend.aws_sdb_domain.get_item(encoding_job.unique_id)
 
+        job['source_path'] = self.source_path
+        job['dest_path'] = self.dest_path
         job['preset'] = self.preset
-        job['options'] = self.job_options
-        job['status'] = self.job_state
+        job['job_options'] = simplejson.dumps(self.job_options)
+        job['job_state'] = self.job_state
         job['last_modified_dtime'] = now_dtime
         job.save()
 
@@ -53,6 +56,8 @@ class AWSEncodingJob(BaseEncodingJob):
             sqs_message = Message()
             sqs_message.set_body(job['unique_id'])
             self.backend.aws_sqs_queue.write(sqs_message)
+
+        return job['unique_id']
 
 class AWSJobStateBackend(BaseJobStateBackend):
     def __init__(self, *args, **kwargs):
@@ -152,7 +157,33 @@ class AWSJobStateBackend(BaseJobStateBackend):
         # Reset our local cache of the boto SQS queue object.
         self._aws_sqs_queue = None
 
-    def get_unfinished_jobs(self):
+    def pop_job_from_queue(self, num_to_pop):
+        messages = self.aws_sqs_queue.get_messages(num_to_pop,
+                                                   visibility_timeout=30)
+
+        jobs = []
+        for message in messages:
+            unique_id = message.get_body()
+            job = self.get_job_object_from_id(unique_id)
+            jobs.append(job)
+            message.delete()
+        return jobs
+
+    def get_job_object_from_id(self, unique_id):
+        item = self.aws_sdb_domain.get_item(unique_id)
+        print "ITEM", item
+        job = AWSEncodingJob(
+            item['source_path'],
+            item['dest_path'],
+            item['preset'],
+            item['job_options'],
+            unique_id=item['unique_id'],
+            job_state=item['job_state'],
+            notify_url=item.get('notify_url', None),
+        )
+        return job
+
+    def get_unfinished_jobs_list(self):
         """
         Queries SimpleDB for a list of pending jobs that have not yet been
         finished. 
