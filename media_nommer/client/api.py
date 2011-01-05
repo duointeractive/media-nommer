@@ -62,7 +62,8 @@ class APIConnection(object):
         :param str source_path: The path string to the master file to encode.
         :param str dest_path: The path string to where you'd like the encoded 
             files to be saved to.
-        :param str preset: A preset defined in your nomconf.py.
+        :param str preset: A preset string that corresponds to key in the
+            settings.PRESETS dict.
         :param dict job_options: A dictionary with additional job options like 
             bitrates, target encoding formats, etc. These options can vary 
             based on the Nommer and the formats you're asking for.

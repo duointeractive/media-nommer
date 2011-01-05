@@ -11,9 +11,3 @@ class NommerException(Exception):
 
     def __str__(self):
         return repr(self.message)
-
-class NommerConfigException(NommerException):
-    """
-    Raise this when there is a configuration error with a Nommer.
-    """
-    pass
