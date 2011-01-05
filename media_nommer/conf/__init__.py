@@ -1,6 +1,6 @@
 """
 Import the :py:obj:`media_nommer.conf.settings` object in this module to 
-get the master list of global settings for feederd, nommerd, and optionally,
+get the master list of global settings for feederd, ec2nommerd, and optionally,
 scavengerd. This involves pulling the default values, then overriding them with 
 the user's settings.
 

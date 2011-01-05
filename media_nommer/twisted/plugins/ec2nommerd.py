@@ -15,7 +15,7 @@ from twisted.web.server import Site
 
 from media_nommer.conf import settings
 from media_nommer.utils.conf import NoConfigFileException
-from media_nommer.feederd.web.urls import API
+from media_nommer.ec2nommerd.web.urls import API
 
 class Options(usage.Options):
     """
@@ -35,8 +35,8 @@ class WebApiServiceMaker(object):
     Used by twisted's plugin architecture to spawn the web server service.
     """
     implements(IServiceMaker, IPlugin)
-    tapname = "nommerd"
-    description = "Starts the media-nommer nommerd."
+    tapname = "ec2nommerd"
+    description = "Starts the media-nommer ec2nommerd."
     options = Options
 
     def makeService(self, options):
@@ -50,8 +50,7 @@ class WebApiServiceMaker(object):
 
     def load_settings(self, options):
         """
-        Loads user settings into the global store at 
-        media_nommer.feederd.conf.settings
+        Loads user settings into the global store at media_nommer.conf.settings.
         """
         # This is the value given with --config, and should be a python module
         # on their sys.path, minus the .py extension. A FQPN.
@@ -75,7 +74,7 @@ class WebApiServiceMaker(object):
         Tasks are started by importing the interval_tasks module. Only do this
         once the settings have been loaded by self.load_settings().
         """
-        from media_nommer.nommerd import interval_tasks
+        from media_nommer.ec2nommerd import interval_tasks
 
 # Now construct an object which *provides* the relevant interfaces
 # The name of this variable is irrelevant, as long as there is *some*

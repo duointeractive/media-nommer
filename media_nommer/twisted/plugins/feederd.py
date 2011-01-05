@@ -50,8 +50,7 @@ class WebApiServiceMaker(object):
 
     def load_settings(self, options):
         """
-        Loads user settings into the global store at 
-        media_nommer.feederd.conf.settings
+        Loads user settings into the global store at media_nommer.conf.settings.
         """
         # This is the value given with --config, and should be a python module
         # on their sys.path, minus the .py extension. A FQPN.
