@@ -51,6 +51,7 @@ class AWSEncodingJob(BaseEncodingJob):
         job['nommer'] = self.nommer_str
         job['job_options'] = simplejson.dumps(self.job_options)
         job['job_state'] = self.job_state
+        job['job_state_details'] = self.job_state_details
         job['last_modified_dtime'] = now_dtime
         print "PRE-SAVE ITEM", job
 
@@ -185,6 +186,7 @@ class AWSJobStateBackend(BaseJobStateBackend):
             item['job_options'],
             unique_id=item['unique_id'],
             job_state=item['job_state'],
+            job_state_details=item.get('job_state_details', None),
             notify_url=item.get('notify_url', None),
         )
         return job

@@ -8,13 +8,15 @@ from media_nommer.utils.mod_importing import import_class_from_module_string
 
 class BaseEncodingJob(object):
     def __init__(self, source_path, dest_path, nommer_str, job_options,
-                 unique_id=None, job_state=None, notify_url=None):
+                 unique_id=None, job_state=None, job_state_details=None,
+                 notify_url=None):
         self.source_path = source_path
         self.dest_path = dest_path
         # __import__ doesn't like unicode, cast this to a str.
         self.nommer_str = str(nommer_str)
         self.unique_id = unique_id
         self.job_state = job_state
+        self.job_state_details = job_state_details
         # Reference to the global job state backend instance.
         self.backend = get_default_backend()
 
@@ -23,7 +25,7 @@ class BaseEncodingJob(object):
         else:
             self.job_options = job_options
 
-    def set_job_state(self, job_state, save=True):
+    def set_job_state(self, job_state, details=None, save=True):
         """
         Sets the job's state and saves it to the backend.
         """
@@ -31,6 +33,12 @@ class BaseEncodingJob(object):
             raise Exception('Invalid job state: %s' % job_state)
 
         self.job_state = self.backend.JOB_STATES[job_state]
+        self.job_state_details = details
+        if isinstance(details, basestring):
+            # Get within AWS's limitations. We'll assume that the error message
+            # is probably near the tail end of the output (hopefully). Not
+            # a great assumption, but it'll have to do.
+            self.job_state_details = details[-1023:]
 
         if save:
             # Only save if asked, in case we need to save queries.
@@ -64,6 +72,7 @@ class BaseJobStateBackend(object):
         'ENCODING': 'ENCODING',
         'UPLOADING': 'UPLOADING',
         'FINISHED': 'FINISHED',
+        'ERROR': 'ERROR',
     }
     def __init__(self, *args, **kwargs):
         pass

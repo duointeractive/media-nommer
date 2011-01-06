@@ -18,7 +18,7 @@ def task_render_job(job):
     """
     print "JOB OBJ", job
     print "JOB SOURCE", job.source_path
-    Nommer = job.nommer.nomnom()
+    job.nommer.onomnom()
 
 def task_check_for_new_jobs():
     """
