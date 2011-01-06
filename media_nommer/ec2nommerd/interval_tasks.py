@@ -18,8 +18,7 @@ def task_render_job(job):
     """
     print "JOB OBJ", job
     print "JOB SOURCE", job.source_path
-    job.set_job_state('PENDING')
-    Nommer = job.nommer.start_encoding()
+    Nommer = job.nommer.nomnom()
 
 def task_check_for_new_jobs():
     """
@@ -38,8 +37,10 @@ def task_check_for_new_jobs():
         # This is an iterable of BaseEncodingJob sub-classed instances for
         # each job returned from the queue.
         jobs = job_state_backend.pop_job_from_queue(num_msgs_to_get)
+        print "Queue checked, found", len(jobs)
 
         for job in jobs:
             # For each job returned, render in another thread.
+            print "* Starting encoder thread"
             reactor.callInThread(task_render_job, job)
 task.LoopingCall(task_check_for_new_jobs).start(30, now=True)

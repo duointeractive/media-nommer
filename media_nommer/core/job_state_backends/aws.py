@@ -165,13 +165,12 @@ class AWSJobStateBackend(BaseJobStateBackend):
     def pop_job_from_queue(self, num_to_pop):
         messages = self.aws_sqs_queue.get_messages(num_to_pop,
                                                    visibility_timeout=1)
-
         jobs = []
         for message in messages:
             unique_id = message.get_body()
             job = self.get_job_object_from_id(unique_id)
             jobs.append(job)
-            #message.delete()
+            message.delete()
         return jobs
 
     def get_job_object_from_id(self, unique_id):

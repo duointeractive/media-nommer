@@ -81,27 +81,6 @@ class BaseJobStateBackend(object):
         """
         raise NotImplemented()
 
-    def create_new_job_in_db(self, *args, **kwargs):
-        """
-        This method should create a new job.
-        """
-        raise NotImplemented()
-
-    def _generate_unique_job_id(self, encoding_job):
-        """
-        Given an encoding job, generate a unique identifier for the job. This
-        is used in databases as a primary key replacement, for those that
-        have no such concept. It does not apply to all DB systems, so this
-        one is optional.
-        """
-        pass
-
-    def save_job(self, encoding_job):
-        """
-        Given an EncodingJob object, save it to the job state storage backend.
-        """
-        raise NotImplemented()
-
     def get_job_class(self):
         """
         Returns a reference to this backend's EncodingJob sub-class.
