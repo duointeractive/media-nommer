@@ -15,7 +15,7 @@ class S3Backend(object):
         return boto.connect_s3(access_key, secret_access_key)
 
     @classmethod
-    def download_file(cls, uri):
+    def download_file(cls, uri, fobj):
         """
         Given a URI, download the file.
         
@@ -26,10 +26,6 @@ class S3Backend(object):
         conn = cls.get_aws_s3_connection(values['username'], values['password'])
         bucket = conn.get_bucket(values['host'])
         key = bucket.get_key(values['path'])
-        # TODO: Decide where to store this stuff.
-        fobj = open('testfile', 'w')
-        # Downloads the file to the file handle.
-        #key.get_file(fobj)
         dlhandler = ResumableDownloadHandler(num_retries=10)
         dlhandler.get_file(key, fobj, None)
         return fobj
