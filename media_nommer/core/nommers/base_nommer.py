@@ -25,3 +25,11 @@ class BaseNommer(object):
         fobj.flush()
         os.fsync(fobj.fileno())
         print "DOWNLOADED", fobj, fobj.name
+        return fobj
+
+    def upload_to_destination(self, fobj):
+        file_uri = self.job.dest_path
+        print "ATTEMPTING TO UPLOAD TO", file_uri, fobj
+        storage = get_storage_backend_for_uri(file_uri)
+        storage.upload_file(file_uri, fobj)
+        print "UPLOADED!"

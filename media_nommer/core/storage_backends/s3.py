@@ -29,3 +29,17 @@ class S3Backend(object):
         dlhandler = ResumableDownloadHandler(num_retries=10)
         dlhandler.get_file(key, fobj, None)
         return fobj
+
+    @classmethod
+    def upload_file(cls, uri, fobj):
+        values = get_values_from_media_uri(uri)
+        print "CONNECTING"
+        conn = cls.get_aws_s3_connection(values['username'], values['password'])
+        print "GETTING BUCKET"
+        bucket = conn.get_bucket(values['host'])
+        print "CREATING NEW KEY"
+        key = bucket.new_key(values['path'])
+        print "SETTING CONTENTS"
+        key.set_contents_from_filename(fobj.name)
+        print "RETURNING"
+        return key

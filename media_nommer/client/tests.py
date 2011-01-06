@@ -9,7 +9,7 @@ class JobSubmitTests(unittest.TestCase):
             AWS_ACCESS_KEY_ID,
             AWS_SECRET_ACCESS_KEY,
             'nommer_in',
-            'roving_web.wmv'
+            'asf_to_mpeg-1.mpeg'
         )
         self.dest_path = 's3://%s:%s@%s/%s' % (
             AWS_ACCESS_KEY_ID,
