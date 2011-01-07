@@ -25,7 +25,7 @@ class BaseEncodingJob(object):
         else:
             self.job_options = job_options
 
-    def set_job_state(self, job_state, details=None, save=True):
+    def set_job_state(self, job_state, details=None):
         """
         Sets the job's state and saves it to the backend.
         """
@@ -34,15 +34,23 @@ class BaseEncodingJob(object):
 
         self.job_state = self.backend.JOB_STATES[job_state]
         self.job_state_details = details
-        if isinstance(details, basestring):
+        if details and isinstance(details, basestring):
             # Get within AWS's limitations. We'll assume that the error message
             # is probably near the tail end of the output (hopefully). Not
             # a great assumption, but it'll have to do.
             self.job_state_details = details[-1023:]
 
-        if save:
-            # Only save if asked, in case we need to save queries.
-            self.save()
+        # Write the changes to the backend.
+        self.save()
+        # Announce a change in state, if the backend supports such a thing.
+        self._send_state_change_notification()
+
+    def _send_state_change_notification(self):
+        """
+        Some backends need to push a notification out to feederd in some way
+        when job states change. This is an optional method for that purpose.
+        """
+        pass
 
     @property
     def nommer(self):

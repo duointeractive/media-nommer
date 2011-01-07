@@ -12,7 +12,33 @@ from media_nommer.conf import settings
 from media_nommer.core.job_state_backends.base_backend import BaseJobStateBackend, BaseEncodingJob
 
 class AWSEncodingJob(BaseEncodingJob):
+    def __init__(self, *args, **kwargs):
+        super(AWSEncodingJob, self).__init__(*args, **kwargs)
+        
+        # Lazy-loaded SQS queue for announcing state changes. Do not access
+        # this directly, go through the similarly named property.
+        self._aws_sqs_state_change_queue = None
+    
+    @property
+    def aws_sqs_state_change_queue(self):
+        """
+        Lazy-loading of the SQS boto queue. Refer to this instead of
+        referencing self._aws_sqs_queue directly.
+
+        Returns:
+           A boto SQS queue.
+        """
+        if not self._aws_sqs_state_change_queue:
+            self._aws_sqs_state_change_queue = self.backend.aws_sqs_connection.create_queue(
+                settings.SQS_JOB_STATE_CHANGE_QUEUE_NAME)
+        return self._aws_sqs_state_change_queue
+    
     def _generate_unique_job_id(self):
+        """
+        Since SimpleDB has no notion of primary keys or auto-incrementing
+        fields, we have to create our own. Generate a unique ID for the job
+        based on a bunch of values and a random salt.
+        """
         random_salt = random.random()
         combo_str = "%s%s%s%s" % (self.source_path,
                                   self.dest_path,
@@ -24,7 +50,6 @@ class AWSEncodingJob(BaseEncodingJob):
         """
         Given an EncodingJob, save it to SimpleDB and SQS. 
         """
-        #self.backend.wipe_all_job_data()
         # Is this a new job that needs creation?
         is_new_job = not self.unique_id
         # Generate this once so our microseconds stay the same from
@@ -64,6 +89,16 @@ class AWSEncodingJob(BaseEncodingJob):
             self.backend.aws_sqs_queue.write(sqs_message)
 
         return job['unique_id']
+    
+    def _send_state_change_notification(self):
+        """
+        Send a message to a state change SQS that lets feederd know to
+        re-load the job from memory.
+        """
+        print "STATE CHANGE FOR", self.unique_id
+        sqs_message = Message()
+        sqs_message.set_body(self.unique_id)
+        self.aws_sqs_state_change_queue.write(sqs_message)
 
 class AWSJobStateBackend(BaseJobStateBackend):
     def __init__(self, *args, **kwargs):
