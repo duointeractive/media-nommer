@@ -20,3 +20,13 @@ def task_check_for_job_state_changes():
     
 if get_default_backend().pop_state_changes_from_queue.enabled:
     task.LoopingCall(task_check_for_job_state_changes).start(10, now=False)
+    
+def threaded_abandon_stale_jobs():
+    """
+    Doc me
+    """
+    JobCache.abandon_stale_jobs()
+    
+def task_abandon_stale_jobs():
+    reactor.callInThread(threaded_abandon_stale_jobs)
+task.LoopingCall(task_abandon_stale_jobs).start(10, now=False)

@@ -24,6 +24,9 @@ class BaseEncodingJob(object):
             self.job_options = simplejson.loads(job_options)
         else:
             self.job_options = job_options
+            
+    def __repr__(self):
+        return u'EncodingJob: %s' % self.unique_id
 
     def set_job_state(self, job_state, details=None):
         """
@@ -81,6 +84,7 @@ class BaseJobStateBackend(object):
         'UPLOADING': 'UPLOADING',
         'FINISHED': 'FINISHED',
         'ERROR': 'ERROR',
+        'ABANDONED': 'ABANDONED',
     }
     def __init__(self, *args, **kwargs):
         pass

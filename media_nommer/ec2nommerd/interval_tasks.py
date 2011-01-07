@@ -32,7 +32,7 @@ def task_check_for_new_jobs():
         job_state_backend = get_default_backend()
         # This is an iterable of BaseEncodingJob sub-classed instances for
         # each job returned from the queue.
-        jobs = job_state_backend.pop_job_from_queue(num_msgs_to_get)
+        jobs = job_state_backend.pop_jobs_from_queue(num_msgs_to_get)
         print "Queue checked, found", len(jobs)
 
         for job in jobs:

@@ -79,10 +79,10 @@ class AWSEncodingJob(BaseEncodingJob):
         Send a message to a state change SQS that lets feederd know to
         re-load the job from memory.
         """
-        print "STATE CHANGE FOR", self.unique_id
+        print "SENDING STATE CHANGE NOTIFICATION"
         sqs_message = Message()
         sqs_message.set_body(self.unique_id)
-        self.aws_sqs_state_change_queue.write(sqs_message)
+        self.backend.aws_sqs_state_change_queue.write(sqs_message)
 
 class AWSJobStateBackend(BaseJobStateBackend):
     def __init__(self, *args, **kwargs):
@@ -200,36 +200,63 @@ class AWSJobStateBackend(BaseJobStateBackend):
         # Reset our local cache of the boto SQS queue object.
         self._aws_sqs_queue = None
 
-    def pop_job_from_queue(self, num_to_pop):
-        messages = self.aws_sqs_queue.get_messages(num_to_pop,
-                                                   visibility_timeout=1)
-        jobs = []
+    def _pop_jobs_from_queue(self, queue, num_to_pop, visibility_timeout=30,
+                             delete_on_pop=True):
+        """
+        Pops job objects from a queue whose entries have bodies that just
+        contain job ID strings.
+        """
+        if num_to_pop > 10:
+            msg = 'SQS only allows up to 10 messages to be popped at a time.'
+            raise Exception(msg)
+        
+        messages = queue.get_messages(num_to_pop, 
+                                      visibility_timeout=visibility_timeout)
+        # Store these in a dict to avoid duplicates. Keys are unique id.
+        jobs = {}
+
         for message in messages:
+            # These message bodies only contain a unique id string.
             unique_id = message.get_body()
-            job = self.get_job_object_from_id(unique_id)
-            jobs.append(job)
-            message.delete()
-        return jobs
+
+            if not jobs.has_key(unique_id):
+                # Avoid querying for a job we already have. This mostly comes
+                # up with the state change queue, where you can have more
+                # than one state change for the same object. In that case,
+                # there could be more than one queue entry with the same
+                # job id in their bodies.
+                jobs[unique_id] = self.get_job_object_from_id(unique_id)
+
+            if delete_on_pop:
+                # Deleting a message makes it gone for good from SQS, instead
+                # of re-appearing after the timeout if we don't delete.
+                message.delete()
+                
+        # Return just the unique AWSEncodingJob objects.
+        return jobs.values()
+
+    def pop_jobs_from_queue(self, num_to_pop):
+        """
+        Pops un-processed jobs from the queue.
+        """
+        return self._pop_jobs_from_queue(self.aws_sqs_queue, 
+                                         num_to_pop,
+                                         visibility_timeout=1)
 
     def pop_state_changes_from_queue(self, num_to_pop):
-        messages = self.aws_sqs_state_change_queue.get_messages(
-                        num_to_pop, visibility_timeout=3600)
-        jobs = {}
-        for message in messages:
-            unique_id = message.get_body()
-            job = self.get_job_object_from_id(unique_id)
-            jobs[job] = True
-            message.delete()
-        return jobs.keys()
+        """
+        Pops any recent state cahnges from the queue.
+        """
+        return self._pop_jobs_from_queue(self.aws_sqs_state_change_queue, 
+                                         num_to_pop,
+                                         visibility_timeout=3600)
     pop_state_changes_from_queue.enabled = True
-
-    def get_job_object_from_id(self, unique_id):
-        item = self.aws_sdb_domain.get_item(unique_id)
-        if item is None:
-            msg = 'AWSJobStateBackend.get_job_object_from_id(): ' \
-                  'No unique ID match for: %s' % unique_id
-            raise Exception(msg)
-        print "ITEM", item
+    
+    def _get_job_object_from_item(self, item):
+        """
+        Given an SDB item, instantiate and return an AWSEncodingJob.
+        """
+        # TODO: Pass the item to EncodinbJob directly as kwargs?
         job = AWSEncodingJob(
             item['source_path'],
             item['dest_path'],
@@ -242,13 +269,37 @@ class AWSJobStateBackend(BaseJobStateBackend):
         )
         return job
 
-    def get_unfinished_jobs_list(self):
+    def get_job_object_from_id(self, unique_id):
+        """
+        Given a job's unique ID, return an AWSEncodingJob instance.
+        """
+        item = self.aws_sdb_domain.get_item(unique_id)
+        if item is None:
+            msg = 'AWSJobStateBackend.get_job_object_from_id(): ' \
+                  'No unique ID match for: %s' % unique_id
+            raise Exception(msg)
+
+        return self._get_job_object_from_item(item)
+
+    def get_unfinished_jobs(self):
         """
         Queries SimpleDB for a list of pending jobs that have not yet been
         finished. 
         
-        Returns:
-            A SimpleDB resultset.
+        :returns: A list of unfinished AWSEncodingJob objects.
         """
-        return self.aws_sdb_domain.select("SELECT * FROM %s" % 
-                                          settings.SIMPLEDB_DOMAIN_NAME)
+        query_str = "SELECT * FROM %s WHERE job_state != '%s' " \
+                    "and job_state != '%s' " \
+                    "and job_state != '%s'" % (
+              settings.SIMPLEDB_DOMAIN_NAME,
+              self.JOB_STATES['FINISHED'],
+              self.JOB_STATES['ERROR'],
+              self.JOB_STATES['ABANDONED']
+        )
+        results = self.aws_sdb_domain.select(query_str)
+        
+        jobs = []
+        for item in results:
+            jobs.append(self._get_job_object_from_item(item))
+
+        return jobs
