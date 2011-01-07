@@ -25,6 +25,8 @@ class AWSEncodingJob(BaseEncodingJob):
             # a Python dict.
             self.job_options = simplejson.loads(self.job_options)
 
+        self.job_state = self.backend.get_job_state_name_from_value(self.job_state)
+
         # SimpleDB doesn't store datetime objects. We need to do some
         # massaging to make this work.
         self.creation_dtime = self._get_dtime_from_string(self.creation_dtime)
@@ -70,7 +72,7 @@ class AWSEncodingJob(BaseEncodingJob):
             job = self.backend.aws_sdb_domain.new_item(self.unique_id)
             # Start populating values.
             self.creation_dtime = now_dtime
-            self.job_state = self.backend.JOB_STATES['PENDING']
+            self.job_state = 'PENDING'
         else:
             # Retrieve the existing item for the job.
             job = self.backend.aws_sdb_domain.get_item(self.unique_id)
@@ -79,12 +81,21 @@ class AWSEncodingJob(BaseEncodingJob):
                       'No match found in DB for ID: %s' % self.unique_id
                 raise Exception(msg)
 
+        if self.job_state_details and isinstance(self.job_state_details,
+                                                 basestring):
+            # Get within AWS's limitations. We'll assume that the error message
+            # is probably near the tail end of the output (hopefully). Not
+            # a great assumption, but it'll have to do.
+            self.job_state_details = self.job_state_details[-1023:]
+
         job['unique_id'] = self.unique_id
         job['source_path'] = self.source_path
         job['dest_path'] = self.dest_path
-        job['nommer'] = self.nommer_str
+        job['nommer'] = '%s.%s' % (self.nommer.__class__.__module__,
+                                   self.nommer.__class__.__name__)
+        print "CALCED NOMMER", job['nommer']
         job['job_options'] = simplejson.dumps(self.job_options)
-        job['job_state'] = self.job_state
+        job['job_state'] = self.backend.get_job_state_value_from_name(self.job_state)
         job['job_state_details'] = self.job_state_details
         job['notify_url'] = self.notify_url
         job['last_modified_dtime'] = now_dtime
@@ -318,6 +329,12 @@ class AWSJobStateBackend(BaseJobStateBackend):
 
         jobs = []
         for item in results:
-            jobs.append(self._get_job_object_from_item(item))
+            try:
+                job = self._get_job_object_from_item(item)
+            except TypeError:
+                print "AWSJobStateBackend.get_unfinished_jobs(): "\
+                      "Unable to instantiate job: %s" % item
+                continue
+            jobs.append(job)
 
         return jobs

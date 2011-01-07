@@ -13,7 +13,7 @@ class BaseEncodingJob(object):
     save and init time on the sub-class.
     """
     def __init__(self, source_path, dest_path, nommer, job_options,
-                 unique_id=None, job_state=None, job_state_details=None,
+                 unique_id=None, job_state='PENDING', job_state_details=None,
                  notify_url=None, creation_dtime=None,
                  last_modified_dtime=None):
         """
@@ -22,7 +22,7 @@ class BaseEncodingJob(object):
         self.source_path = source_path
         self.dest_path = dest_path
         # __import__ doesn't like unicode, cast this to a str.
-        self.nommer_str = str(nommer)
+        self.nommer = import_class_from_module_string(str(nommer))(self)
         self.job_options = job_options
         self.unique_id = unique_id
         self.job_state = job_state
@@ -40,13 +40,6 @@ class BaseEncodingJob(object):
         """
         return u'EncodingJob: %s' % self.unique_id
 
-    @property
-    def nommer(self):
-        """
-        Returns the correct Nommer instance for this job.
-        """
-        return import_class_from_module_string(self.nommer_str)(self)
-
     def save(self):
         """
         Saves this job to your job state backend, via self.backend.
@@ -62,13 +55,8 @@ class BaseEncodingJob(object):
         if not self.backend.JOB_STATES.has_key(job_state):
             raise Exception('Invalid job state: %s' % job_state)
 
-        self.job_state = self.backend.JOB_STATES[job_state]
+        self.job_state = job_state
         self.job_state_details = details
-        if details and isinstance(details, basestring):
-            # Get within AWS's limitations. We'll assume that the error message
-            # is probably near the tail end of the output (hopefully). Not
-            # a great assumption, but it'll have to do.
-            self.job_state_details = details[-1023:]
 
         # Write the changes to the backend.
         self.save()
@@ -114,6 +102,28 @@ class BaseJobStateBackend(object):
 
     def __init__(self, *args, **kwargs):
         pass
+
+    def get_job_state_name_from_value(self, value):
+        """
+        Given the db value (value in JOB_STATES dict) of a job state, return
+        the name (key in JOB_STATES dict). If no match is found, raise
+        an exception.
+        """
+        for state_name, state_value in self.JOB_STATES.items():
+            if value == state_value:
+                return state_name
+        raise Exception('Invalid job state value: %s' % value)
+
+    def get_job_state_value_from_name(self, name):
+        """
+        Given name (key in JOB_STATES dict) of a job state, return
+        the value (value in JOB_STATES dict). If no match is found, raise
+        an exception.
+        """
+        for state_name, state_value in self.JOB_STATES.items():
+            if name == state_name:
+                return state_value
+        raise Exception('Invalid job state name: %s' % name)
 
     def wipe_all_job_data(self, *args, **kwargs):
         """

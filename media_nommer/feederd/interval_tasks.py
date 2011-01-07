@@ -11,6 +11,7 @@ def threaded_check_for_job_state_changes():
     Doc me
     """
     JobCache.refresh_jobs_with_state_changes()
+    JobCache.uncache_finished_jobs()
 
 def task_check_for_job_state_changes():
     """
