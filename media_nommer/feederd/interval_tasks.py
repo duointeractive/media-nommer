@@ -3,12 +3,20 @@ This module contains tasks that are executed at intervals, and is imported at
 the time the server is started.
 """
 from twisted.internet import task, threads, reactor
-from twisted.python import log
-from media_nommer.conf import settings
+from media_nommer.core.job_state_backends import get_default_backend
+from media_nommer.feederd.job_cache import JobCache
 
-def run_every_second():
+def threaded_check_for_job_state_changes():
     """
-    Just an example task.
+    Doc me
     """
-    print "a second has passed"
-#task.LoopingCall(run_every_second).start(1.0, now=False)
+    JobCache.refresh_jobs_with_state_changes()
+
+def task_check_for_job_state_changes():
+    """
+    Checks for job state changes in another thread.
+    """
+    reactor.callInThread(threaded_check_for_job_state_changes)
+    
+if get_default_backend().pop_state_changes_from_queue.enabled:
+    task.LoopingCall(task_check_for_job_state_changes).start(10, now=False)

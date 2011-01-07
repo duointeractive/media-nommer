@@ -16,6 +16,7 @@ from twisted.web.server import Site
 from media_nommer.conf import settings
 from media_nommer.utils.conf import NoConfigFileException
 from media_nommer.feederd.web.urls import API
+from media_nommer.feederd.job_cache import JobCache
 
 class Options(usage.Options):
     """
@@ -45,6 +46,7 @@ class WebApiServiceMaker(object):
         structure module.
         """
         self.load_settings(options)
+        self.load_job_cache()
         self.start_tasks()
         return internet.TCPServer(int(options['port']), Site(API))
 
@@ -68,6 +70,13 @@ class WebApiServiceMaker(object):
         # Now that the user's settings have been imported, populate the
         # global settings object and override defaults with the user's values.
         settings.update_settings_from_module(user_settings)
+        
+    def load_job_cache(self):
+        """
+        Loads a portion of recently modified jobs into the job cache, where
+        they may be quickly accessed.
+        """
+        JobCache.load_recent_jobs_at_startup()
 
     def start_tasks(self):
         """

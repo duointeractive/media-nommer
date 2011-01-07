@@ -14,25 +14,7 @@ from media_nommer.core.job_state_backends.base_backend import BaseJobStateBacken
 class AWSEncodingJob(BaseEncodingJob):
     def __init__(self, *args, **kwargs):
         super(AWSEncodingJob, self).__init__(*args, **kwargs)
-        
-        # Lazy-loaded SQS queue for announcing state changes. Do not access
-        # this directly, go through the similarly named property.
-        self._aws_sqs_state_change_queue = None
-    
-    @property
-    def aws_sqs_state_change_queue(self):
-        """
-        Lazy-loading of the SQS boto queue. Refer to this instead of
-        referencing self._aws_sqs_queue directly.
-
-        Returns:
-           A boto SQS queue.
-        """
-        if not self._aws_sqs_state_change_queue:
-            self._aws_sqs_state_change_queue = self.backend.aws_sqs_connection.create_queue(
-                settings.SQS_JOB_STATE_CHANGE_QUEUE_NAME)
-        return self._aws_sqs_state_change_queue
-    
+      
     def _generate_unique_job_id(self):
         """
         Since SimpleDB has no notion of primary keys or auto-incrementing
@@ -69,7 +51,9 @@ class AWSEncodingJob(BaseEncodingJob):
             # Retrieve the existing item for the job.
             job = self.backend.aws_sdb_domain.get_item(self.unique_id)
             if job is None:
-                raise Exception('AWSEncodingJob.save(): No match found in DB for ID: %s' % self.unique_id)
+                msg = 'AWSEncodingJob.save(): ' \
+                      'No match found in DB for ID: %s' % self.unique_id
+                raise Exception(msg)
 
         job['source_path'] = self.source_path
         job['dest_path'] = self.dest_path
@@ -111,6 +95,9 @@ class AWSJobStateBackend(BaseJobStateBackend):
         self._aws_sqs_connection = None
         # Triple ditto.
         self._aws_sqs_queue = None
+        # Lazy-loaded SQS queue for announcing state changes. Do not access
+        # this directly, go through the similarly named property.
+        self._aws_sqs_state_change_queue = None
 
     @property
     def aws_sdb_connection(self):
@@ -137,7 +124,8 @@ class AWSJobStateBackend(BaseJobStateBackend):
            A boto SimpleDB domain for this workflow.
         """
         if not self._aws_sdb_domain:
-            self._aws_sdb_domain = self.aws_sdb_connection.create_domain(settings.SIMPLEDB_DOMAIN_NAME)
+            self._aws_sdb_domain = self.aws_sdb_connection.create_domain(
+                                        settings.SIMPLEDB_DOMAIN_NAME)
         return self._aws_sdb_domain
 
     @property
@@ -168,6 +156,20 @@ class AWSJobStateBackend(BaseJobStateBackend):
             self._aws_sqs_queue = self.aws_sqs_connection.create_queue(
                 settings.SQS_QUEUE_NAME)
         return self._aws_sqs_queue
+    
+    @property
+    def aws_sqs_state_change_queue(self):
+        """
+        Lazy-loading of the SQS boto queue. Refer to this instead of
+        referencing self._aws_sqs_queue directly.
+
+        Returns:
+           A boto SQS queue.
+        """
+        if not self._aws_sqs_state_change_queue:
+            self._aws_sqs_state_change_queue = self.aws_sqs_connection.create_queue(
+                settings.SQS_JOB_STATE_CHANGE_QUEUE_NAME)
+        return self._aws_sqs_state_change_queue
 
     def get_job_class(self):
         """
@@ -209,10 +211,24 @@ class AWSJobStateBackend(BaseJobStateBackend):
             message.delete()
         return jobs
 
+    def pop_state_changes_from_queue(self, num_to_pop):
+        messages = self.aws_sqs_state_change_queue.get_messages(
+                        num_to_pop, visibility_timeout=3600)
+        jobs = {}
+        for message in messages:
+            unique_id = message.get_body()
+            job = self.get_job_object_from_id(unique_id)
+            jobs[job] = True
+            message.delete()
+        return jobs.keys()
+    pop_state_changes_from_queue.enabled = True
+
     def get_job_object_from_id(self, unique_id):
         item = self.aws_sdb_domain.get_item(unique_id)
         if item is None:
-            raise Exception('AWSJobStateBackend.get_job_object_from_id(): No unique ID match for: %s' % unique_id)
+            msg = 'AWSJobStateBackend.get_job_object_from_id(): ' \
+                  'No unique ID match for: %s' % unique_id
+            raise Exception(msg)
         print "ITEM", item
         job = AWSEncodingJob(
             item['source_path'],
@@ -234,4 +250,5 @@ class AWSJobStateBackend(BaseJobStateBackend):
         Returns:
             A SimpleDB resultset.
         """
-        return self.aws_sdb_domain.select("SELECT * FROM %s" % settings.SIMPLEDB_DOMAIN_NAME)
+        return self.aws_sdb_domain.select("SELECT * FROM %s" % 
+                                          settings.SIMPLEDB_DOMAIN_NAME)

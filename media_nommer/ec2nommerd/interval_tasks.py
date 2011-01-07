@@ -8,13 +8,9 @@ from twisted.python import log
 from media_nommer.conf import settings
 from media_nommer.core.job_state_backends import get_default_backend
 
-def task_render_job(job):
+def threaded_encode_job(job):
     """
-    Calls the incoming bucket checking functions in a separate thread to prevent
-    this long call from blocking us.
-    
-    TODO: Figure out how to not spawn a new thread with each loop of this.
-    That is expensive. Earlier attempts failed, please be my guest.
+    Given a job, run it through its encoding workflow.
     """
     print "JOB OBJ", job
     print "JOB SOURCE", job.source_path
@@ -42,5 +38,5 @@ def task_check_for_new_jobs():
         for job in jobs:
             # For each job returned, render in another thread.
             print "* Starting encoder thread"
-            reactor.callInThread(task_render_job, job)
+            reactor.callInThread(threaded_encode_job, job)
 task.LoopingCall(task_check_for_new_jobs).start(30, now=True)

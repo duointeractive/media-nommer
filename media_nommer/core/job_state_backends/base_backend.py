@@ -114,3 +114,10 @@ class BaseJobStateBackend(object):
         :returns: A list of your backend's BaseEncodingJob sub-class instances.
         """
         raise NotImplemented()
+    
+    def pop_state_changes_from_queue(self, num_to_pop):
+        """
+        Stub
+        """
+        pass
+    pop_state_changes_from_queue.enabled = False
