@@ -8,6 +8,10 @@ override anything here.
 AWS_ACCESS_KEY_ID = None
 AWS_SECRET_ACCESS_KEY = None
 
+# If a job sticks in an un-finished state after this long (in seconds), it
+# is considered abandoned, and is killed.
+ABANDON_INACTIVE_JOBS_THRESH = 3600 * 24
+
 # A dict of workflow presets.
 PRESETS = ()
 

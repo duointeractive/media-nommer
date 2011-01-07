@@ -13,8 +13,33 @@ from media_nommer.core.job_state_backends.base_backend import BaseJobStateBacken
 
 class AWSEncodingJob(BaseEncodingJob):
     def __init__(self, *args, **kwargs):
+        """
+        For the most part, we use the default constructor, but do some
+        additional de-serialization of job status and datetimes.
+        """
+        # Do all the normal stuff from parent class.
         super(AWSEncodingJob, self).__init__(*args, **kwargs)
-      
+
+        if isinstance(self.job_options, basestring):
+            # If job_options is a string, it is JSON. De-code it and make it
+            # a Python dict.
+            self.job_options = simplejson.loads(self.job_options)
+
+        # SimpleDB doesn't store datetime objects. We need to do some
+        # massaging to make this work.
+        self.creation_dtime = self._get_dtime_from_string(self.creation_dtime)
+        self.last_modified_dtime = self._get_dtime_from_string(self.last_modified_dtime)
+
+    def _get_dtime_from_string(self, dtime):
+        """
+        If dtime is a string, try to parse and instantiate a date from it.
+        If it's something else, just return the value without messing with it.
+        """
+        if isinstance(dtime, basestring):
+            return datetime.datetime.strptime(dtime, '%Y-%m-%d %H:%M:%S.%f')
+        # Not a string, just return it.
+        return dtime
+
     def _generate_unique_job_id(self):
         """
         Since SimpleDB has no notion of primary keys or auto-incrementing
@@ -40,12 +65,11 @@ class AWSEncodingJob(BaseEncodingJob):
 
         if is_new_job:
             # This serves as the "FK" equivalent.
-            unique_id = self._generate_unique_job_id()
+            self.unique_id = self._generate_unique_job_id()
             # Create the item in the domain.
-            job = self.backend.aws_sdb_domain.new_item(unique_id)
+            job = self.backend.aws_sdb_domain.new_item(self.unique_id)
             # Start populating values.
-            job['unique_id'] = unique_id
-            job['creation_dtime'] = now_dtime
+            self.creation_dtime = now_dtime
             self.job_state = self.backend.JOB_STATES['PENDING']
         else:
             # Retrieve the existing item for the job.
@@ -55,13 +79,16 @@ class AWSEncodingJob(BaseEncodingJob):
                       'No match found in DB for ID: %s' % self.unique_id
                 raise Exception(msg)
 
+        job['unique_id'] = self.unique_id
         job['source_path'] = self.source_path
         job['dest_path'] = self.dest_path
         job['nommer'] = self.nommer_str
         job['job_options'] = simplejson.dumps(self.job_options)
         job['job_state'] = self.job_state
         job['job_state_details'] = self.job_state_details
+        job['notify_url'] = self.notify_url
         job['last_modified_dtime'] = now_dtime
+        job['creation_dtime'] = self.creation_dtime
         print "PRE-SAVE ITEM", job
 
         job.save()
@@ -73,7 +100,7 @@ class AWSEncodingJob(BaseEncodingJob):
             self.backend.aws_sqs_queue.write(sqs_message)
 
         return job['unique_id']
-    
+
     def _send_state_change_notification(self):
         """
         Send a message to a state change SQS that lets feederd know to
@@ -156,7 +183,7 @@ class AWSJobStateBackend(BaseJobStateBackend):
             self._aws_sqs_queue = self.aws_sqs_connection.create_queue(
                 settings.SQS_QUEUE_NAME)
         return self._aws_sqs_queue
-    
+
     @property
     def aws_sqs_state_change_queue(self):
         """
@@ -209,8 +236,8 @@ class AWSJobStateBackend(BaseJobStateBackend):
         if num_to_pop > 10:
             msg = 'SQS only allows up to 10 messages to be popped at a time.'
             raise Exception(msg)
-        
-        messages = queue.get_messages(num_to_pop, 
+
+        messages = queue.get_messages(num_to_pop,
                                       visibility_timeout=visibility_timeout)
         # Store these in a dict to avoid duplicates. Keys are unique id.
         jobs = {}
@@ -231,7 +258,7 @@ class AWSJobStateBackend(BaseJobStateBackend):
                 # Deleting a message makes it gone for good from SQS, instead
                 # of re-appearing after the timeout if we don't delete.
                 message.delete()
-                
+
         # Return just the unique AWSEncodingJob objects.
         return jobs.values()
 
@@ -239,7 +266,7 @@ class AWSJobStateBackend(BaseJobStateBackend):
         """
         Pops un-processed jobs from the queue.
         """
-        return self._pop_jobs_from_queue(self.aws_sqs_queue, 
+        return self._pop_jobs_from_queue(self.aws_sqs_queue,
                                          num_to_pop,
                                          visibility_timeout=1)
 
@@ -247,26 +274,17 @@ class AWSJobStateBackend(BaseJobStateBackend):
         """
         Pops any recent state cahnges from the queue.
         """
-        return self._pop_jobs_from_queue(self.aws_sqs_state_change_queue, 
+        return self._pop_jobs_from_queue(self.aws_sqs_state_change_queue,
                                          num_to_pop,
                                          visibility_timeout=3600)
     pop_state_changes_from_queue.enabled = True
-    
+
     def _get_job_object_from_item(self, item):
         """
         Given an SDB item, instantiate and return an AWSEncodingJob.
         """
         # TODO: Pass the item to EncodinbJob directly as kwargs?
-        job = AWSEncodingJob(
-            item['source_path'],
-            item['dest_path'],
-            item['nommer'],
-            item['job_options'],
-            unique_id=item['unique_id'],
-            job_state=item['job_state'],
-            job_state_details=item.get('job_state_details', None),
-            notify_url=item.get('notify_url', None),
-        )
+        job = AWSEncodingJob(**item)
         return job
 
     def get_job_object_from_id(self, unique_id):
@@ -297,7 +315,7 @@ class AWSJobStateBackend(BaseJobStateBackend):
               self.JOB_STATES['ABANDONED']
         )
         results = self.aws_sdb_domain.select(query_str)
-        
+
         jobs = []
         for item in results:
             jobs.append(self._get_job_object_from_item(item))

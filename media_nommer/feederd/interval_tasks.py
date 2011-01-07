@@ -17,16 +17,17 @@ def task_check_for_job_state_changes():
     Checks for job state changes in another thread.
     """
     reactor.callInThread(threaded_check_for_job_state_changes)
-    
+
 if get_default_backend().pop_state_changes_from_queue.enabled:
     task.LoopingCall(task_check_for_job_state_changes).start(10, now=False)
-    
-def threaded_abandon_stale_jobs():
+
+def threaded_prune_jobs():
     """
     Doc me
     """
     JobCache.abandon_stale_jobs()
-    
-def task_abandon_stale_jobs():
-    reactor.callInThread(threaded_abandon_stale_jobs)
-task.LoopingCall(task_abandon_stale_jobs).start(10, now=False)
+    JobCache.uncache_finished_jobs()
+
+def task_prune_jobs():
+    reactor.callInThread(threaded_prune_jobs)
+task.LoopingCall(task_prune_jobs).start(60 * 5, now=False)

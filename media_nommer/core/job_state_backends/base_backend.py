@@ -2,31 +2,58 @@
 Contains the base backend class from which all backends are based from. All
 job state backends should sub-class JobStateBackend.
 """
-import simplejson
 from media_nommer.core.job_state_backends import get_default_backend
 from media_nommer.utils.mod_importing import import_class_from_module_string
 
 class BaseEncodingJob(object):
-    def __init__(self, source_path, dest_path, nommer_str, job_options,
+    """
+    Serves as a base for encoding jobs on all backends.
+    
+    TODO: Abstract job states out a little better. Handle the nasties during
+    save and init time on the sub-class.
+    """
+    def __init__(self, source_path, dest_path, nommer, job_options,
                  unique_id=None, job_state=None, job_state_details=None,
-                 notify_url=None):
+                 notify_url=None, creation_dtime=None,
+                 last_modified_dtime=None):
+        """
+        Document me.
+        """
         self.source_path = source_path
         self.dest_path = dest_path
         # __import__ doesn't like unicode, cast this to a str.
-        self.nommer_str = str(nommer_str)
+        self.nommer_str = str(nommer)
+        self.job_options = job_options
         self.unique_id = unique_id
         self.job_state = job_state
         self.job_state_details = job_state_details
+        self.notify_url = notify_url
+        self.creation_dtime = creation_dtime
+        self.last_modified_dtime = last_modified_dtime
+
         # Reference to the global job state backend instance.
         self.backend = get_default_backend()
 
-        if isinstance(job_options, basestring):
-            self.job_options = simplejson.loads(job_options)
-        else:
-            self.job_options = job_options
-            
     def __repr__(self):
+        """
+        String representation of the object. Just show the unique ID.
+        """
         return u'EncodingJob: %s' % self.unique_id
+
+    @property
+    def nommer(self):
+        """
+        Returns the correct Nommer instance for this job.
+        """
+        return import_class_from_module_string(self.nommer_str)(self)
+
+    def save(self):
+        """
+        Saves this job to your job state backend, via self.backend.
+        
+        :returns: The job's unique ID.
+        """
+        raise NotImplemented()
 
     def set_job_state(self, job_state, details=None):
         """
@@ -55,21 +82,16 @@ class BaseEncodingJob(object):
         """
         pass
 
-    @property
-    def nommer(self):
+    def is_finished(self):
         """
-        Returns the correct Nommer instance for this job.
+        Returns True if this job is in a finished state.
         """
-        print "TRYING TO IMPORT", self.nommer_str, type(self.nommer_str)
-        return import_class_from_module_string(self.nommer_str)(self)
-
-    def save(self):
-        """
-        Saves this job to your job state backend, via self.backend.
-        
-        :returns: The job's unique ID.
-        """
-        raise NotImplemented()
+        # Break job states into a list of tuples: (job state name, value)
+        finished_states = self.backend.FINISHED_STATES
+        # self.job_state returns the value from the DB, so just get the values.
+        finished_states = [self.backend.JOB_STATES[value] for value in finished_states]
+        # If current state matches the list of unfinished values, unfinished.
+        return self.job_state in finished_states
 
 class BaseJobStateBackend(object):
     """
@@ -86,6 +108,10 @@ class BaseJobStateBackend(object):
         'ERROR': 'ERROR',
         'ABANDONED': 'ABANDONED',
     }
+    # Any jobs in the following states are considered "finished" in that we
+    # won't do anything else with them.
+    FINISHED_STATES = ['FINISHED', 'ERROR', 'ABANDONED']
+
     def __init__(self, *args, **kwargs):
         pass
 
@@ -118,7 +144,7 @@ class BaseJobStateBackend(object):
         :returns: A list of your backend's BaseEncodingJob sub-class instances.
         """
         raise NotImplemented()
-    
+
     def pop_state_changes_from_queue(self, num_to_pop):
         """
         Stub
