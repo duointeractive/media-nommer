@@ -36,7 +36,7 @@ class S3Backend(object):
         print "CONNECTING"
         conn = cls.get_aws_s3_connection(values['username'], values['password'])
         print "GETTING BUCKET"
-        bucket = conn.get_bucket(values['host'])
+        bucket = conn.create_bucket(values['host'])
         print "CREATING NEW KEY"
         key = bucket.new_key(values['path'])
         print "SETTING CONTENTS"

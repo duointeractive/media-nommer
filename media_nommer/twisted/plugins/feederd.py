@@ -14,6 +14,7 @@ from twisted.application import internet
 from twisted.web.server import Site
 
 from media_nommer.conf import settings
+from media_nommer.conf.utils import upload_settings
 from media_nommer.utils.conf import NoConfigFileException
 from media_nommer.feederd.web.urls import API
 from media_nommer.feederd.job_cache import JobCache
@@ -46,6 +47,7 @@ class WebApiServiceMaker(object):
         structure module.
         """
         self.load_settings(options)
+        self.upload_user_settings()
         self.load_job_cache()
         self.start_tasks()
         return internet.TCPServer(int(options['port']), Site(API))
@@ -59,7 +61,7 @@ class WebApiServiceMaker(object):
         cfg_file = options['config']
 
         try:
-            user_settings = __import__(cfg_file)
+            self.user_settings = __import__(cfg_file)
         except ImportError:
             message = "The config module '%s' could not be found in your" \
                       "sys.path. Correct your path or specify another config " \
@@ -69,8 +71,16 @@ class WebApiServiceMaker(object):
 
         # Now that the user's settings have been imported, populate the
         # global settings object and override defaults with the user's values.
-        settings.update_settings_from_module(user_settings)
-        
+        settings.update_settings_from_module(self.user_settings)
+
+    def upload_user_settings(self):
+        """
+        Uploads a copy of the settings to the bucket specified on
+        settings.CONFIG_S3_BUCKET. This is used by the nommers that require
+        access to the config, like EC2FFmpegNommer.
+        """
+        upload_settings(self.user_settings)
+
     def load_job_cache(self):
         """
         Loads a portion of recently modified jobs into the job cache, where

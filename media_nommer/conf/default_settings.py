@@ -8,9 +8,26 @@ override anything here.
 AWS_ACCESS_KEY_ID = None
 AWS_SECRET_ACCESS_KEY = None
 
+# The S3 bucket to store a copy of nomconf.py for nommer instances.
+CONFIG_S3_BUCKET = 'nommer_config'
+
+# The SQS queue to use for storing encoding state info.
+SQS_QUEUE_NAME = 'media_nommer'
+SQS_JOB_STATE_CHANGE_QUEUE_NAME = 'media_nommer_jstate'
+
+# The SimpleDB domain name for storing encoding job state in.
+SIMPLEDB_DOMAIN_NAME = 'media_nommer'
+
 # If a job sticks in an un-finished state after this long (in seconds), it
 # is considered abandoned, and is killed.
 ABANDON_INACTIVE_JOBS_THRESH = 3600 * 24
+
+# The maximum number of jobs that should ever run on a single instance at
+# the same time.
+MAX_ENCODING_JOBS_PER_EC2_INSTANCE = 1
+
+# The maximum number of EC2 instances to run at a time.
+MAX_NUM_EC2_INSTANCES = 1
 
 # A dict of workflow presets.
 PRESETS = ()
