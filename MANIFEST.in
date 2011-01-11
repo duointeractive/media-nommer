@@ -1,0 +1,6 @@
+include README.rst
+include LICENSE
+include requirements.txt
+include docbuild_requirements.txt
+recursive-include media_nommer/twisted *.py
+graft doc_src
