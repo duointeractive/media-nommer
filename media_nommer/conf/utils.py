@@ -1,6 +1,7 @@
 """
 Various configuration-related utility methods.
 """
+import os
 import boto
 from media_nommer.conf import settings
 from media_nommer.core.storage_backends.s3 import S3Backend
@@ -24,5 +25,6 @@ def download_settings(nomconf_uri):
     Given the URI to a S3 location with a valid nomconf.py, download it.
     This is used on the media-nommer EC2 AMIs.
     """
-    fobj = open('~/nomconf.py', 'w')
+    nomconf_path = os.path.expanduser('~/nomconf.py')
+    fobj = open(nomconf_path, 'w')
     S3Backend.download_file(nomconf_uri, fobj)
