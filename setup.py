@@ -62,7 +62,7 @@ setup(
 
 try:
     # This is needed to re-generate the Twisted plugin dropin.cache after install.
-    from twisted.plugin import getPlugins
+    from twisted.plugin import IPlugin, getPlugins
     list(getPlugins(IPlugin))
 except ImportError:
     # Probably haven't installed yet. Fail silently.
