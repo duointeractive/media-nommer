@@ -33,7 +33,7 @@ setup(
     license='BSD License',
     url='http://duointeractive.github.com/media-nommer/',
     platforms=["any"],
-    requires=['boto', 'twisted', 'txrestapi'],
+    requires=['boto', 'twisted', 'txrestapi', 'simplejson'],
     provides=['media_nommer'],
     packages=[
         'media_nommer',
@@ -59,3 +59,11 @@ setup(
         'Topic :: Software Development :: Libraries :: Python Modules',
     ],
 )
+
+try:
+    # This is needed to re-generate the Twisted plugin dropin.cache after install.
+    from twisted.plugin import getPlugins
+    list(getPlugins(IPlugin))
+except ImportError:
+    # Probably haven't installed yet. Fail silently.
+    pass
