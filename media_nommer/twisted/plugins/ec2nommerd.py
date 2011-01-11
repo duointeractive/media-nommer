@@ -6,6 +6,7 @@ of the S3 incoming buckets and determining whether more EC2 nodes are needed.
 More documentation about the Twisted plugin system can be found here:
 http://twistedmatrix.com/documents/current/core/howto/plugin.html
 """
+import os
 from zope.interface import implements
 from twisted.python import usage
 from twisted.plugin import IPlugin
@@ -14,6 +15,7 @@ from twisted.application import internet
 from twisted.web.server import Site
 
 from media_nommer.conf import settings
+from media_nommer.conf.utils import download_settings
 from media_nommer.utils.conf import NoConfigFileException
 from media_nommer.ec2nommerd.web.urls import API
 
@@ -44,9 +46,27 @@ class WebApiServiceMaker(object):
         Construct a TCPServer from a Site factory, along with our URL
         structure module.
         """
+        self.download_settings()
         self.load_settings(options)
         self.start_tasks()
         return internet.TCPServer(int(options['port']), Site(API))
+
+    def download_settings(self):
+        """
+        Downloads nomconf.py from the bucket specified in 
+        settings.CONFIG_S3_BUCKET. feederd uploads its nomconf.py to that
+        location at start time.
+        
+        Only do this if a ~/.nommerd_s3.cfg file exists with a valid URI.
+        """
+        s3_uri_path = os.path.expanduser('~/.nommerd_s3.cfg')
+
+        s3_uri_present = os.path.exists(s3_uri_path)
+        if s3_uri_present:
+            print "nommerd nomconf S3 URI present, using that to " \
+                  "download nomconf.py"
+            s3_uri = open(s3_uri_path, 'r').read().strip()
+            download_settings(s3_uri)
 
     def load_settings(self, options):
         """
