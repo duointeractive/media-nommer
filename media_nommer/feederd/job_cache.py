@@ -2,8 +2,9 @@
 Basic job caching module.
 """
 import datetime
-from media_nommer.core.job_state_backends import get_default_backend
 from media_nommer.conf import settings
+from media_nommer.core.job_state_backends import get_default_backend
+from media_nommer.utils.compat import total_seconds
 
 class JobCache(dict):
     CACHE = {}
@@ -116,7 +117,7 @@ class JobCache(dict):
                 last_mod = job.last_modified_dtime
 
                 tdelta = now_dtime - last_mod
-                inactive_seconds = tdelta.total_seconds()
+                inactive_seconds = total_seconds(tdelta)
 
                 if inactive_seconds >= settings.ABANDON_INACTIVE_JOBS_THRESH:
                     cls.remove_job(job)

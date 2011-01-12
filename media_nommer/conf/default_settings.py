@@ -32,6 +32,9 @@ EC2_AMI_ID = 'ami-847c8ded'
 # The type of instance to run on. Must be at least m1.large. t1.micro and
 # small instances are *NOT* supported by the default AMI.
 EC2_INSTANCE_TYPE = 'm1.large'
+# How many seconds of inactivity (not working on any jobs) before an
+# instance will terminate itself.
+EC2_INSTANCE_MAX_INACTIVITY = 120
 # The maximum number of jobs that should ever run on a single instance at
 # the same time.
 MAX_ENCODING_JOBS_PER_EC2_INSTANCE = 1

@@ -5,16 +5,18 @@ the time the server is started.
 import time
 from twisted.internet import task, threads, reactor
 from twisted.python import log
+from twisted.python.threadpool import ThreadPool
 from media_nommer.conf import settings
 from media_nommer.core.job_state_backends import get_default_backend
-from media_nommer.ec2nommerd.node_state import send_instance_state_update
+from media_nommer.ec2nommerd.node_state import NodeStateManager
 
 def threaded_encode_job(job):
     """
-    Given a job, run it through its encoding workflow.
+    Given a job, run it through its encoding workflow in a non-blocking manner.
     """
     print "JOB OBJ", job
     print "JOB SOURCE", job.source_path
+    NodeStateManager.i_did_something()
     job.nommer.onomnom()
 
 def task_check_for_new_jobs():
@@ -40,19 +42,20 @@ def task_check_for_new_jobs():
             # For each job returned, render in another thread.
             print "* Starting encoder thread"
             reactor.callInThread(threaded_encode_job, job)
-task.LoopingCall(task_check_for_new_jobs).start(30, now=True)
+task.LoopingCall(task_check_for_new_jobs).start(60, now=True)
 
-def threaded_check_in_via_simpledb():
+def threaded_heartbeat():
     """
     Send some basic state data to a SimpleDB domain, for feederd to see.
     """
-    send_instance_state_update()
+    if not NodeStateManager.contemplate_termination():
+        NodeStateManager.send_instance_state_update()
 
-def task_check_in_via_simpledb():
+def task_heartbeat():
     """
     Fires off a threaded task to check in with feederd via SimpleDB. There
     is a domain that contains all of the running EC2 instances and their
     unique IDs, along with some state data.
     """
-    reactor.callInThread(threaded_check_in_via_simpledb)
-task.LoopingCall(task_check_in_via_simpledb).start(60, now=False)
+    reactor.callInThread(threaded_heartbeat)
+task.LoopingCall(task_heartbeat).start(120, now=False)

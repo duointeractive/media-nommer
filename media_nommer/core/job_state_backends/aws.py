@@ -123,6 +123,10 @@ class AWSEncodingJob(BaseEncodingJob):
         self.backend.aws_sqs_state_change_queue.write(sqs_message)
 
 class AWSJobStateBackend(BaseJobStateBackend):
+    """
+    A job state backend based off of Amazon AWS. Makes heavy use of
+    SimpleDB_ and SQS_.
+    """
     def __init__(self, *args, **kwargs):
         super(AWSJobStateBackend, self).__init__(self, *args , **kwargs)
         # Start as a None value so we can lazy load.
@@ -143,8 +147,7 @@ class AWSJobStateBackend(BaseJobStateBackend):
         Lazy-loading of the SimpleDB boto connection. Refer to this instead of
         referencing self._aws_sdb_connection directly.
         
-        Returns:
-            A boto connection to Amazon's SimpleDB interface.
+        :returns: A boto connection to Amazon's SimpleDB interface.
         """
         if not self._aws_sdb_connection:
             self._aws_sdb_connection = boto.connect_sdb(
@@ -158,8 +161,7 @@ class AWSJobStateBackend(BaseJobStateBackend):
         Lazy-loading of the SimpleDB boto domain. Refer to this instead of
         referencing self._aws_sdb_domain directly.
 
-        Returns:
-           A boto SimpleDB domain for this workflow.
+        :returns: A boto SimpleDB domain for this workflow.
         """
         if not self._aws_sdb_domain:
             self._aws_sdb_domain = self.aws_sdb_connection.create_domain(
@@ -172,8 +174,7 @@ class AWSJobStateBackend(BaseJobStateBackend):
         Lazy-loading of the SQS boto connection. Refer to this instead of
         referencing self._aws_sqs_connection directly.
         
-        Returns:
-            A boto connection to Amazon's SimpleDB interface.
+        :returns: A boto connection to Amazon's SimpleDB interface.
         """
         if not self._aws_sqs_connection:
             self._aws_sqs_connection = boto.connect_sqs(
@@ -187,8 +188,7 @@ class AWSJobStateBackend(BaseJobStateBackend):
         Lazy-loading of the SQS boto queue. Refer to this instead of
         referencing self._aws_sqs_queue directly.
 
-        Returns:
-           A boto SQS queue.
+        :returns: A boto SQS queue.
         """
         if not self._aws_sqs_queue:
             self._aws_sqs_queue = self.aws_sqs_connection.create_queue(
@@ -201,8 +201,7 @@ class AWSJobStateBackend(BaseJobStateBackend):
         Lazy-loading of the SQS boto queue. Refer to this instead of
         referencing self._aws_sqs_queue directly.
 
-        Returns:
-           A boto SQS queue.
+        :returns: A boto SQS queue.
         """
         if not self._aws_sqs_state_change_queue:
             self._aws_sqs_state_change_queue = self.aws_sqs_connection.create_queue(
@@ -212,6 +211,9 @@ class AWSJobStateBackend(BaseJobStateBackend):
     def get_job_class(self):
         """
         Returns a reference to this backend's EncodingJob sub-class.
+        
+        :rtype: AWSEncodingJob
+        :returns: AWSEncodingJob class reference
         """
         return AWSEncodingJob
 
@@ -222,8 +224,7 @@ class AWSJobStateBackend(BaseJobStateBackend):
         .. warning:: This will mean that everything in the incoming bucket will 
         be scheduled for rendering again, so be careful!
         
-        Returns:
-            True if successful. False if not.
+        :returns: ``True`` if successful. ``False`` if not.
         """
         try:
             self.aws_sdb_connection.delete_domain(settings.SIMPLEDB_DOMAIN_NAME)

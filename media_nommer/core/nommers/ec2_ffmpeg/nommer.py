@@ -1,12 +1,20 @@
+"""
+Contains a class used for nomming media on EC2 via FFmpeg_. This is used in
+conjunction with the ec2nommerd Twisted_ plugin.
+"""
 import os
 import tempfile
 import subprocess
 from media_nommer.core.nommers.base_nommer import BaseNommer
 
 class EC2FFmpegNommer(BaseNommer):
+    """
+    A nommer that runs on EC2 instances, encoding media with FFmpeg_.
+    """
     def _start_encoding(self):
         """
-        Gets the show on the road.
+        Best thought of as a ``main()`` method for the Nommer. This is the
+        main bit of logic that directs the encoding process.
         """
         print "STARTING TO NOM"
         fobj = self.download_source_file()
@@ -31,6 +39,14 @@ class EC2FFmpegNommer(BaseNommer):
         return True
 
     def __append_inout_opts_to_cmd_list(self, option_dict, cmd_list):
+        """
+        Takes user or preset options and adds them as arguments to the
+        command list that will be ran with ``Popen()``.
+        
+        :param dict option_dict: The options to add to the command list.
+        :param list cmd_list: The list being formed to pass to ``Popen()``
+            in :py:meth:`__run_ffmpeg`.
+        """
         for key, val in option_dict.items():
             cmd_list.append('-%s' % key)
             cmd_list.append(val)
@@ -38,6 +54,11 @@ class EC2FFmpegNommer(BaseNommer):
     def __run_ffmpeg(self, fobj):
         """
         Fire up ffmpeg and toss the results into a temporary file.
+        
+        :rtype: file-like object or ``None``
+        :returns: If the encoding succeeds, a file-like object is returned.
+            If an error happens, ``None`` is returned, and the ERROR job
+            state is set.
         """
         path = fobj.name
         out_fobj = tempfile.NamedTemporaryFile(mode='w+b', delete=True)
@@ -46,6 +67,8 @@ class EC2FFmpegNommer(BaseNommer):
 
         ffmpeg_cmd = ['ffmpeg', '-y', '-i', path]
 
+        # Form the ffmpeg infile and outfile options from the options
+        # stored in the SimpleDB domain.
         if self.job.job_options.has_key('infile_options'):
             infile_opts = self.job.job_options['infile_options']
             self.__append_inout_opts_to_cmd_list(infile_opts, ffmpeg_cmd)
@@ -64,6 +87,7 @@ class EC2FFmpegNommer(BaseNommer):
         cmd_output = process.communicate()
 
         print "RETURN CODE", process.returncode, type(process.returncode)
+        # 0 is success, so anything but that is bad.
         error_happened = process.returncode != 0
 
         if not error_happened:

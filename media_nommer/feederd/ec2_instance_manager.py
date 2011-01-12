@@ -109,6 +109,7 @@ class EC2InstanceManager(object):
 
         try:
             image = conn.get_all_images(image_ids=settings.EC2_AMI_ID)
+            image = image[0]
         except EC2ResponseError:
             print "ERROR: No AMI with ID %s could be found." % settings.EC2_AMI_ID
             return

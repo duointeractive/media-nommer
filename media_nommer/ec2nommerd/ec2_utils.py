@@ -30,3 +30,12 @@ def get_instance_id(is_local=False):
             __INSTANCE_ID = response.read()
 
     return __INSTANCE_ID
+
+def is_ec2_instance():
+    """
+    Determine whether this is an EC2 instance or not.
+    
+    :rtype: bool
+    :returns: ``True`` if this is an EC2 instance, ``False`` if otherwise.
+    """
+    return get_instance_id() != 'local-dev'
