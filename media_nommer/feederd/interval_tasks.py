@@ -1,48 +1,73 @@
 """
 This module contains tasks that are executed at intervals, and is imported at
-the time the server is started.
+the time the server is started. Much of feederd's 'intelligence' can be
+found here.
 """
 from twisted.internet import task, threads, reactor
 from media_nommer.conf import settings
 from media_nommer.core.job_state_backends import get_default_backend
 from media_nommer.feederd.job_cache import JobCache
-from media_nommer.feederd.instance_manager import InstanceManager
+from media_nommer.feederd.ec2_instance_manager import EC2InstanceManager
 
 def threaded_check_for_job_state_changes():
     """
-    Doc me
+    Checks the SQS queue specified in settings.SQS_JOB_STATE_CHANGE_QUEUE_NAME
+    for announcements of state changes from external nommers like
+    EC2FFmpegNommer. This lets feederd know it needs to get updated job
+    details from the SimpleDB domain defined in settings.SIMPLEDB_DOMAIN_NAME.
     """
     JobCache.refresh_jobs_with_state_changes()
+    # If jobs have completed, remove them from the job cache.
     JobCache.uncache_finished_jobs()
 
 def task_check_for_job_state_changes():
     """
-    Checks for job state changes in another thread.
+    Checks for job state changes in a non-blocking manner.
     """
     reactor.callInThread(threaded_check_for_job_state_changes)
 
 if get_default_backend().pop_state_changes_from_queue.enabled:
+    # If the default backend tracks state changes from a queue of some sort,
+    # this thread handles that.
     task.LoopingCall(task_check_for_job_state_changes).start(10, now=False)
 
 def threaded_prune_jobs():
     """
-    Doc me
+    Sometimes failure happens, but a Nommer doesn't handle said failure
+    gracefully. Instead of state changing to ERROR, it gets stuck in
+    some un-finished state in the SimpleDB domain defined in
+    settings.SIMPLEDB_DOMAIN_NAME.
+    
+    This process finds jobs that haven't been updated in a very long time
+    (a day or so) that are probably dead. It marks them with an ABANDONED
+    state, letting us know something went really wrong.
     """
     JobCache.abandon_stale_jobs()
+    # Expire any newly abandoned jobs, too. Removes them from job cache.
     JobCache.uncache_finished_jobs()
 
 def task_prune_jobs():
+    """
+    Prune expired or abandoned jobs from the settings.SIMPLEDB_DOMAIN_NAME
+    domain and feederd's job cache.
+    """
     reactor.callInThread(threaded_prune_jobs)
 task.LoopingCall(task_prune_jobs).start(60 * 5, now=False)
 
-def threaded_manage_instances():
+def threaded_manage_ec2_instances():
     """
-    Doc me
+    Looks at the current number of jobs needing encoding and compares them
+    to the pool of currently running EC2 instances. Spawns more EC2 instances
+    as needed.
     """
-    InstanceManager.spawn_if_needed()
+    EC2InstanceManager.spawn_if_needed()
 
-def task_manage_instances():
-    reactor.callInThread(threaded_manage_instances)
+def task_manage_ec2_instances():
+    """
+    Calls the instance creation logic in a non-blocking manner.
+    """
+    reactor.callInThread(threaded_manage_ec2_instances)
 
 if settings.ALLOW_EC2_LAUNCHES:
-    task.LoopingCall(task_manage_instances).start(60, now=True)
+    # Only call the instance auto-spawning if enabled.
+    task.LoopingCall(task_manage_ec2_instances).start(60, now=True)
