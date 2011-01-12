@@ -45,4 +45,4 @@ def task_manage_instances():
     reactor.callInThread(threaded_manage_instances)
 
 if settings.ALLOW_EC2_LAUNCHES:
-    task.LoopingCall(task_manage_instances).start(10, now=False)
+    task.LoopingCall(task_manage_instances).start(60, now=True)

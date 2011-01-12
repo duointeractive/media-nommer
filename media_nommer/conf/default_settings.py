@@ -23,11 +23,15 @@ SIMPLEDB_EC2_NOMMER_STATE = 'media_nommer_ec2nommer_state'
 # If a job sticks in an un-finished state after this long (in seconds), it
 # is considered abandoned, and is killed.
 ABANDON_INACTIVE_JOBS_THRESH = 3600 * 24
-
-# The security group to create EC2 instances under.
-EC2_SECURITY_GROUP = 'media_nommer'
+# The user key with which to launch the instance.
+EC2_KEY_NAME = 'your_key'
+# The security groups to create EC2 instances under.
+EC2_SECURITY_GROUPS = ['media_nommer']
 # The AMI ID for the media-nommer EC2 instance.
-EC2_AMI_ID = 'ami-a47a8bcd'
+EC2_AMI_ID = 'ami-f27d8c9b'
+# The type of instance to run on. Must be at least m1.large. t1.micro and
+# small instances are *NOT* supported by the default AMI.
+EC2_INSTANCE_TYPE = 'm1.large'
 # The maximum number of jobs that should ever run on a single instance at
 # the same time.
 MAX_ENCODING_JOBS_PER_EC2_INSTANCE = 1
