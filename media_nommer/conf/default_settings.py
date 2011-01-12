@@ -17,20 +17,29 @@ SQS_JOB_STATE_CHANGE_QUEUE_NAME = 'media_nommer_jstate'
 
 # The SimpleDB domain name for storing encoding job state in.
 SIMPLEDB_DOMAIN_NAME = 'media_nommer'
+# SimpleDB domain for storing EC2 instance nommer state in.
+SIMPLEDB_EC2_NOMMER_STATE = 'media_nommer_ec2nommer_state'
 
 # If a job sticks in an un-finished state after this long (in seconds), it
 # is considered abandoned, and is killed.
 ABANDON_INACTIVE_JOBS_THRESH = 3600 * 24
 
+# The security group to create EC2 instances under.
+EC2_SECURITY_GROUP = 'media_nommer'
+# The AMI ID for the media-nommer EC2 instance.
+EC2_AMI_ID = 'ami-548c783d'
 # The maximum number of jobs that should ever run on a single instance at
 # the same time.
 MAX_ENCODING_JOBS_PER_EC2_INSTANCE = 1
-
+# When True, allow the launching of new EC2 instances.
+ALLOW_EC2_LAUNCHES = True
+# When True, allow the termination of idle EC2 instances.
+ALLOW_EC2_TERMINATION = True
 # The maximum number of EC2 instances to run at a time.
-MAX_NUM_EC2_INSTANCES = 1
-
-# A dict of workflow presets.
-PRESETS = ()
+MAX_NUM_EC2_INSTANCES = 3
+# If we our number of unfinished jobs exceeds our capacity by this number of
+# jobs, look at starting new instances.
+EC2_JOB_OVERFLOW_THRESH = 2
 
 # Storage backends. The protocol is the key, the value is the class used to
 # access said protocol.
@@ -40,3 +49,6 @@ STORAGE_BACKENDS = {
 
 # Job state backends track job queues and the state of the entries.
 JOB_STATE_BACKEND = 'media_nommer.core.job_state_backends.aws.AWSJobStateBackend'
+
+# A dict of workflow presets.
+PRESETS = ()

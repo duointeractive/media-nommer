@@ -3,8 +3,10 @@ This module contains tasks that are executed at intervals, and is imported at
 the time the server is started.
 """
 from twisted.internet import task, threads, reactor
+from media_nommer.conf import settings
 from media_nommer.core.job_state_backends import get_default_backend
 from media_nommer.feederd.job_cache import JobCache
+from media_nommer.feederd.instance_manager import InstanceManager
 
 def threaded_check_for_job_state_changes():
     """
@@ -32,3 +34,15 @@ def threaded_prune_jobs():
 def task_prune_jobs():
     reactor.callInThread(threaded_prune_jobs)
 task.LoopingCall(task_prune_jobs).start(60 * 5, now=False)
+
+def threaded_manage_instances():
+    """
+    Doc me
+    """
+    InstanceManager.spawn_if_needed()
+
+def task_manage_instances():
+    reactor.callInThread(threaded_manage_instances)
+
+if settings.ALLOW_EC2_LAUNCHES:
+    task.LoopingCall(task_manage_instances).start(10, now=False)
