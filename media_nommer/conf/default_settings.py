@@ -27,7 +27,7 @@ ABANDON_INACTIVE_JOBS_THRESH = 3600 * 24
 # The security group to create EC2 instances under.
 EC2_SECURITY_GROUP = 'media_nommer'
 # The AMI ID for the media-nommer EC2 instance.
-EC2_AMI_ID = 'ami-548c783d'
+EC2_AMI_ID = 'ami-a47a8bcd'
 # The maximum number of jobs that should ever run on a single instance at
 # the same time.
 MAX_ENCODING_JOBS_PER_EC2_INSTANCE = 1
