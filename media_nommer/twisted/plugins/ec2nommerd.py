@@ -98,9 +98,9 @@ class WebApiServiceMaker(object):
         once the settings have been loaded by self.load_settings().
         """
         from media_nommer.ec2nommerd.ec2_utils import get_instance_id
-        is_local = options.has_key('local')
-        print "IS LOCAL", is_local
+        is_local = options.get('local', 0) == 1
         get_instance_id(is_local=is_local)
+
         from media_nommer.ec2nommerd import interval_tasks
 
 # Now construct an object which *provides* the relevant interfaces
