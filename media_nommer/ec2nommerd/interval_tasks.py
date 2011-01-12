@@ -7,6 +7,7 @@ from twisted.internet import task, threads, reactor
 from twisted.python import log
 from media_nommer.conf import settings
 from media_nommer.core.job_state_backends import get_default_backend
+from media_nommer.ec2nommerd.node_state import send_instance_state_update
 
 def threaded_encode_job(job):
     """
@@ -40,3 +41,18 @@ def task_check_for_new_jobs():
             print "* Starting encoder thread"
             reactor.callInThread(threaded_encode_job, job)
 task.LoopingCall(task_check_for_new_jobs).start(30, now=True)
+
+def threaded_check_in_via_simpledb():
+    """
+    Send some basic state data to a SimpleDB domain, for feederd to see.
+    """
+    send_instance_state_update()
+
+def task_check_in_via_simpledb():
+    """
+    Fires off a threaded task to check in with feederd via SimpleDB. There
+    is a domain that contains all of the running EC2 instances and their
+    unique IDs, along with some state data.
+    """
+    reactor.callInThread(threaded_check_in_via_simpledb)
+task.LoopingCall(task_check_in_via_simpledb).start(5, now=True)

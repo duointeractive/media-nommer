@@ -27,10 +27,13 @@ class Options(usage.Options):
     """
     # Set up the parameters we're looking for.
     optParameters = [
-         ["port", "p", 8002, "The port number to listen on."],
-         ["config", "c", "nomconf", "Config file"],
+        ["port", "p", 8002, "The port number to listen on."],
+        ["config", "c", "nomconf", "Config file."],
     ]
 
+    optFlags = [
+        ["local", "o", "Use when developing locally."],
+    ]
 
 class WebApiServiceMaker(object):
     """
@@ -48,7 +51,7 @@ class WebApiServiceMaker(object):
         """
         self.download_settings()
         self.load_settings(options)
-        self.start_tasks()
+        self.start_tasks(options)
         return internet.TCPServer(int(options['port']), Site(API))
 
     def download_settings(self):
@@ -89,11 +92,14 @@ class WebApiServiceMaker(object):
         # global settings object and override defaults with the user's values.
         settings.update_settings_from_module(user_settings)
 
-    def start_tasks(self):
+    def start_tasks(self, options):
         """
         Tasks are started by importing the interval_tasks module. Only do this
         once the settings have been loaded by self.load_settings().
         """
+        from media_nommer.ec2nommerd.ec2_utils import get_instance_id
+        is_local = options.has_key('local')
+        get_instance_id(is_local=is_local)
         from media_nommer.ec2nommerd import interval_tasks
 
 # Now construct an object which *provides* the relevant interfaces
