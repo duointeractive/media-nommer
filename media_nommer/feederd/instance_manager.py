@@ -71,7 +71,9 @@ class InstanceManager(object):
         cap_plus_thresh = job_capacity + settings.EC2_JOB_OVERFLOW_THRESH
         print "PLUS THRESH", cap_plus_thresh
 
-        if num_unfinished_jobs >= cap_plus_thresh:
+        is_over_capacity = num_unfinished_jobs >= cap_plus_thresh
+        has_jobs_but_no_nommers = num_unfinished_jobs >= 0 and num_instances == 0
+        if is_over_capacity or has_jobs_but_no_nommers:
             overage = num_unfinished_jobs - job_capacity
             overage -= settings.EC2_JOB_OVERFLOW_THRESH
             print "OVERAGE", overage
