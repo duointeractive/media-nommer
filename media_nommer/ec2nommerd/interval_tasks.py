@@ -55,4 +55,4 @@ def task_check_in_via_simpledb():
     unique IDs, along with some state data.
     """
     reactor.callInThread(threaded_check_in_via_simpledb)
-task.LoopingCall(task_check_in_via_simpledb).start(5, now=True)
+task.LoopingCall(task_check_in_via_simpledb).start(60, now=False)

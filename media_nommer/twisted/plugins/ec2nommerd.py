@@ -99,6 +99,7 @@ class WebApiServiceMaker(object):
         """
         from media_nommer.ec2nommerd.ec2_utils import get_instance_id
         is_local = options.has_key('local')
+        print "IS LOCAL", is_local
         get_instance_id(is_local=is_local)
         from media_nommer.ec2nommerd import interval_tasks
 
