@@ -72,7 +72,7 @@ class InstanceManager(object):
         print "PLUS THRESH", cap_plus_thresh
 
         is_over_capacity = num_unfinished_jobs >= cap_plus_thresh
-        has_jobs_but_no_nommers = num_unfinished_jobs >= 0 and num_instances == 0
+        has_jobs_but_no_nommers = num_unfinished_jobs > 0 and num_instances == 0
         if is_over_capacity or has_jobs_but_no_nommers:
             overage = num_unfinished_jobs - job_capacity
             overage -= settings.EC2_JOB_OVERFLOW_THRESH
@@ -105,7 +105,10 @@ class InstanceManager(object):
                     "apt_update: true\n\n" \
                     "apt_upgrade: true\n\n" \
                     "runcmd:\n" \
+                    " - chmod 777 /tmp\n" \
                     " - echo \"s3://AKIAINTEVPDHGFOKKVEQ:RIqGHMbvAXWxO6VXNo/9WdElBGLUkEKu+YnBPX/4@nommer_config/nomconf.py\" > /home/nom/.nommerd_s3.cfg\n" \
-                    " - chown nom:nom /home/nom/.nommerd_s3.cfg"
+                    " - chown nom:nom /home/nom/.nommerd_s3.cfg\n" \
+                    " - sudo -u nom -i /home/nom/.virtualenvs/media_nommer/bin/pip install --upgrade git+http://github.com/duointeractive/media-nommer.git#egg=media_nommer > /tmp/media_nom_upgrade.log\n" \
+                    " - supervisorctl start ec2nommerd > /tmp/superv_start.log"
 
         return user_data
