@@ -46,7 +46,7 @@ class AWSEncodingJob(object):
             # a Python dict.
             self.job_options = simplejson.loads(self.job_options)
 
-        self.job_state = self.backend.get_job_state_name_from_value(job_state)
+        self.job_state = job_state
 
         # SimpleDB doesn't store datetime objects. We need to do some
         # massaging to make this work.
@@ -130,21 +130,20 @@ class AWSEncodingJob(object):
         job['dest_path'] = self.dest_path
         job['nommer'] = '%s.%s' % (self.nommer.__class__.__module__,
                                    self.nommer.__class__.__name__)
-        print "CALCED NOMMER", job['nommer']
         job['job_options'] = simplejson.dumps(self.job_options)
-        job['job_state'] = JobStateBackend.get_job_state_value_from_name(self.job_state)
+        job['job_state'] = self.job_state
         job['job_state_details'] = self.job_state_details
         job['notify_url'] = self.notify_url
         job['last_modified_dtime'] = now_dtime
         job['creation_dtime'] = self.creation_dtime
-        print "PRE-SAVE ITEM", job
+
+        logger.debug("AWSEncodingJob.save(): Item pre-save values: %s" % job)
 
         job.save()
 
         if is_new_job:
-            print "QUEING", job['unique_id']
-            sqs_message = Message()
-            sqs_message.set_body(job['unique_id'])
+            logger.debug("AWSEncodingJob.save(): Enqueueing new job: %s" % self.unique_id)
+            sqs_message = Message(body=job['unique_id'])
             JobStateBackend._aws_sqs_new_job_queue.write(sqs_message)
 
         return job['unique_id']
@@ -153,8 +152,8 @@ class AWSEncodingJob(object):
         """
         Sets the job's state and saves it to the backend.
         """
-        if not JobStateBackend.JOB_STATES.has_key(job_state):
-            raise Exception('Invalid job state: %s' % job_state)
+        if job_state not in JobStateBackend.JOB_STATES:
+            raise Exception('Invalid job state: % s' % job_state)
 
         self.job_state = job_state
         self.job_state_details = details
@@ -168,12 +167,7 @@ class AWSEncodingJob(object):
         """
         Returns True if this job is in a finished state.
         """
-        # Break job states into a list of tuples: (job state name, value)
-        finished_states = JobStateBackend.FINISHED_STATES
-        # self.job_state returns the value from the DB, so just get the values.
-        finished_states = [JobStateBackend.JOB_STATES[value] for value in finished_states]
-        # If current state matches the list of unfinished values, unfinished.
-        return self.job_state in finished_states
+        return self.job_state in JobStateBackend.FINISHED_STATES
 
 class AWSJobStateBackend(object):
     """
@@ -181,15 +175,8 @@ class AWSJobStateBackend(object):
     as a foundation. Required methods raise a NotImplemented exception
     by default, unless overridden by child classes.
     """
-    JOB_STATES = {
-        'PENDING': 'PENDING',
-        'DOWNLOADING': 'DOWNLOADING',
-        'ENCODING': 'ENCODING',
-        'UPLOADING': 'UPLOADING',
-        'FINISHED': 'FINISHED',
-        'ERROR': 'ERROR',
-        'ABANDONED': 'ABANDONED',
-    }
+    JOB_STATES = ['PENDING', 'DOWNLOADING', 'ENCODING', 'UPLOADING',
+                  'FINISHED', 'ERROR', 'ABANDONED']
     # Any jobs in the following states are considered "finished" in that we
     # won't do anything else with them.
     FINISHED_STATES = ['FINISHED', 'ERROR', 'ABANDONED']
@@ -290,28 +277,6 @@ class AWSJobStateBackend(object):
 
         return self._get_job_object_from_item(item)
 
-    def get_job_state_name_from_value(self, value):
-        """
-        Given the db value (value in JOB_STATES dict) of a job state, return
-        the name (key in JOB_STATES dict). If no match is found, raise
-        an exception.
-        """
-        for state_name, state_value in self.JOB_STATES.items():
-            if value == state_value:
-                return state_name
-        raise Exception('Invalid job state value: %s' % value)
-
-    def get_job_state_value_from_name(self, name):
-        """
-        Given name (key in JOB_STATES dict) of a job state, return
-        the value (value in JOB_STATES dict). If no match is found, raise
-        an exception.
-        """
-        for state_name, state_value in self.JOB_STATES.items():
-            if name == state_name:
-                return state_value
-        raise Exception('Invalid job state name: %s' % name)
-
     def wipe_all_job_data(self):
         """
         Deletes the SimpleDB domain and empties the SQS queue. These are both
@@ -344,9 +309,9 @@ class AWSJobStateBackend(object):
                     "and job_state != '%s' " \
                     "and job_state != '%s'" % (
               settings.SIMPLEDB_JOB_STATE_DOMAIN,
-              self.JOB_STATES['FINISHED'],
-              self.JOB_STATES['ERROR'],
-              self.JOB_STATES['ABANDONED']
+              'FINISHED',
+              'ERROR',
+              'ABANDONED',
         )
         results = self._aws_sdb_job_state_domain.select(query_str)
 
@@ -355,8 +320,8 @@ class AWSJobStateBackend(object):
             try:
                 job = self._get_job_object_from_item(item)
             except TypeError:
-                print "AWSJobStateBackend.get_unfinished_jobs(): "\
-                      "Unable to instantiate job: %s" % item
+                message = "AWSJobStateBackend.get_unfinished_jobs(): Unable to instantiate job: %s" % item
+                logger.error(message_or_obj=message)
                 continue
             jobs.append(job)
 

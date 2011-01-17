@@ -5,6 +5,7 @@ between Nommers.
 """
 import os
 import tempfile
+from media_nommer.utils import logger
 from media_nommer.core.storage_backends import get_storage_backend_for_uri
 
 class BaseNommer(object):
@@ -38,16 +39,23 @@ class BaseNommer(object):
         """
         self.job.set_job_state('DOWNLOADING')
 
+        # This is the remote path.
         file_uri = self.job.source_path
-        print "ATTEMPTING TO DOWNLOAD", file_uri
+        logger.debug("BaseNommer.download_source_file(): Attempting to download %s" % file_uri)
+        # Figure out which backend to use for the protocol in the URI.
         storage = get_storage_backend_for_uri(file_uri)
+        # Create a temporary file which will be auto deleted when
+        # garbage collected.
         fobj = tempfile.NamedTemporaryFile(mode='w+b', delete=True)
+        # Using the correct backend, download the file to the given
+        # file-like object.
         storage.download_file(file_uri, fobj)
         # flush and fsync to force writing to the file object. Doesn't always
         # happen otherwise.
         fobj.flush()
         os.fsync(fobj.fileno())
-        print "DOWNLOADED", fobj, fobj.name
+
+        logger.debug("BaseNommer.download_source_file(): Downloaded %s to %s" % (file_uri, fobj.name))
         # As soon as this fobj is garbage collected, it is closed(). Be
         # careful to continue its existence if you need it.
         return fobj
@@ -58,7 +66,7 @@ class BaseNommer(object):
         """
         self.job.set_job_state('UPLOADING')
         file_uri = self.job.dest_path
-        print "ATTEMPTING TO UPLOAD TO", file_uri, fobj
+        logger.debug("BaseNommer.upload_to_destination(): Attempting to upload %s to %s" % (fobj.name, file_uri))
         storage = get_storage_backend_for_uri(file_uri)
         storage.upload_file(file_uri, fobj)
-        print "UPLOADED!"
+        logger.debug("BaseNommer.upload_to_destination(): Finished uploading %s to %s" % (fobj.name, file_uri))

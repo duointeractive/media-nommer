@@ -11,4 +11,4 @@ except KeyError:
 try:
     AWS_SECRET_ACCESS_KEY = os.environ['MNOM_TEST_AWS_SECRET_ACCESS_KEY']
 except KeyError:
-    print Exception("No MNOM_TEST_AWS_SECRET_ACCESS_KEY environment variable found. Please set it and try again.")
+    raise Exception("No MNOM_TEST_AWS_SECRET_ACCESS_KEY environment variable found. Please set it and try again.")

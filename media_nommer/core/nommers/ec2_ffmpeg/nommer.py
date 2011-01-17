@@ -2,9 +2,9 @@
 Contains a class used for nomming media on EC2 via FFmpeg_. This is used in
 conjunction with the ec2nommerd Twisted_ plugin.
 """
-import os
 import tempfile
 import subprocess
+from media_nommer.utils import logger
 from media_nommer.core.nommers.base_nommer import BaseNommer
 
 class EC2FFmpegNommer(BaseNommer):
@@ -16,7 +16,7 @@ class EC2FFmpegNommer(BaseNommer):
         Best thought of as a ``main()`` method for the Nommer. This is the
         main bit of logic that directs the encoding process.
         """
-        print "STARTING TO NOM"
+        logger.info("Starting to encode job %s" % self.job.unique_id)
         fobj = self.download_source_file()
 
         # Encode the file. The return value is a tempfile with the output.
@@ -33,7 +33,7 @@ class EC2FFmpegNommer(BaseNommer):
         # file after a successful run.
 
         self.job.set_job_state('FINISHED')
-        print "FINE"
+        logger.info("EC2FFmpegNommer: Job %s has been successfully encoded." % self.job.unique_id)
         fobj.close()
         out_fobj.close()
         return True
@@ -62,8 +62,6 @@ class EC2FFmpegNommer(BaseNommer):
         """
         path = fobj.name
         out_fobj = tempfile.NamedTemporaryFile(mode='w+b', delete=True)
-        print "OUTPUT", out_fobj.name
-        print "ARGS", self.job.job_options
 
         ffmpeg_cmd = ['ffmpeg', '-y', '-i', path]
 
@@ -79,14 +77,13 @@ class EC2FFmpegNommer(BaseNommer):
 
         ffmpeg_cmd.append(out_fobj.name)
 
-        print "COMMAND TO RUN", ffmpeg_cmd
+        logger.debug("EC2FFmpegNommer.__run_ffmpeg(): Command to run: %s" % ffmpeg_cmd)
 
         process = subprocess.Popen(ffmpeg_cmd,
                                    stdout=subprocess.PIPE,
                                    stderr=subprocess.PIPE)
         cmd_output = process.communicate()
 
-        print "RETURN CODE", process.returncode, type(process.returncode)
         # 0 is success, so anything but that is bad.
         error_happened = process.returncode != 0
 
@@ -96,8 +93,8 @@ class EC2FFmpegNommer(BaseNommer):
             return out_fobj
         else:
             # Error found, return nothing so the nommer can die.
-            print "!!! ERROR, SETTING ERROR STATE WITH OUTPUT"
-            print "STDOUT", cmd_output[0]
-            print "STDERROR", cmd_output[1]
+            logger.error(message_or_obj="Error encountered while running ffmpeg.")
+            logger.error(message_or_obj=cmd_output[0])
+            logger.error(message_or_obj=cmd_output[1])
             self.job.set_job_state('ERROR', details=cmd_output[1])
             return None

@@ -31,7 +31,7 @@ class Options(usage.Options):
     ]
 
     optFlags = [
-        ["local", "o", "Use when developing locally."],
+        ["local", "l", "Use when developing locally."],
     ]
 
 class WebApiServiceMaker(object):

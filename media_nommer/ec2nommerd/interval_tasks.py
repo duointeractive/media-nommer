@@ -4,6 +4,7 @@ the time the server is started.
 """
 from twisted.internet import task, reactor
 from media_nommer.conf import settings
+from media_nommer.utils import logger
 from media_nommer.core.job_state_backend import JobStateBackend
 from media_nommer.ec2nommerd.node_state import NodeStateManager
 
@@ -11,8 +12,6 @@ def threaded_encode_job(job):
     """
     Given a job, run it through its encoding workflow in a non-blocking manner.
     """
-    print "JOB OBJ", job
-    print "JOB SOURCE", job.source_path
     NodeStateManager.i_did_something()
     job.nommer.onomnom()
 
@@ -27,15 +26,16 @@ def task_check_for_new_jobs():
     if num_active_threads < max_threads:
         # We have more room for encoding threads, determine how many.
         num_msgs_to_get = max(0, max_threads - num_active_threads)
-        print "Job check tic. Starting as many as", num_msgs_to_get
+        logger.debug("task_check_for_new_jobs: Job check tic. Accepting as many as %d jobs." % num_msgs_to_get)
         # This is an iterable of BaseEncodingJob sub-classed instances for
         # each job returned from the queue.
         jobs = JobStateBackend.pop_new_jobs_from_queue(num_msgs_to_get)
-        print "Queue checked, found", len(jobs)
+        if jobs:
+            logger.debug("* Popped %d jobs from the queue." % len(jobs))
 
         for job in jobs:
             # For each job returned, render in another thread.
-            print "* Starting encoder thread"
+            logger.debug("* Starting encoder thread for job: %s" % job.unique_id)
             reactor.callInThread(threaded_encode_job, job)
 task.LoopingCall(task_check_for_new_jobs).start(
     settings.NOMMERD_NEW_JOB_CHECK_INTERVAL, now=True)

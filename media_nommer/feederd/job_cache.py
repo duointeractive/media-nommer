@@ -96,7 +96,7 @@ class JobCache(dict):
         Looks at the state change queue (if your backend has one), and
         partially refreshes the object cache based on which jobs have changed.
         """
-        logger.debug("Checking state change queue.")
+        logger.debug("JobCache.refresh_jobs_with_state_changes(): Checking state change queue.")
         changed_jobs = JobStateBackend.pop_state_changes_from_queue(10)
 
         if changed_jobs:

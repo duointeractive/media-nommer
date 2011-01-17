@@ -5,6 +5,7 @@ import boto
 import datetime
 from twisted.internet import reactor
 from media_nommer.conf import settings
+from media_nommer.utils import logger
 from media_nommer.ec2nommerd.ec2_utils import get_instance_id, is_ec2_instance
 from media_nommer.utils.compat import total_seconds
 
@@ -111,7 +112,7 @@ class NodeStateManager(object):
             for reservation in reservations:
                 for instance in reservation.instances:
                     # Here's the instance, terminate it.
-                    print "Goodbye, cruel world."
+                    logger.info("Goodbye, cruel world.")
                     instance.terminate()
             # Seeya later!
             return True
