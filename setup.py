@@ -36,8 +36,7 @@ setup(
     requires=['boto', 'twisted', 'txrestapi', 'simplejson'],
     provides=['media_nommer'],
     packages=[
-        'media_nommer',
-        'media_nommer.conf',
+        'media_nommer', 'media_nommer.conf',
         'media_nommer.core',
         'media_nommer.core.nommers', 'media_nommer.core.nommers.ec2_ffmpeg',
         'media_nommer.core.storage_backends',
