@@ -79,14 +79,14 @@ class EC2InstanceManager(object):
         job_capacity = num_instances * settings.MAX_ENCODING_JOBS_PER_EC2_INSTANCE
         print "JOB CAPACITY", job_capacity
 
-        cap_plus_thresh = job_capacity + settings.EC2_JOB_OVERFLOW_THRESH
+        cap_plus_thresh = job_capacity + settings.JOB_OVERFLOW_THRESH
         print "PLUS THRESH", cap_plus_thresh
 
         is_over_capacity = num_unfinished_jobs >= cap_plus_thresh
         has_jobs_but_no_nommers = num_unfinished_jobs > 0 and num_instances == 0
         if is_over_capacity or has_jobs_but_no_nommers:
             overage = num_unfinished_jobs - job_capacity
-            overage -= settings.EC2_JOB_OVERFLOW_THRESH
+            overage -= settings.JOB_OVERFLOW_THRESH
             print "OVERAGE", overage
             num_new_instances = overage / settings.MAX_ENCODING_JOBS_PER_EC2_INSTANCE
             num_new_instances = max(num_new_instances, 1)

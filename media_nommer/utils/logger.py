@@ -1,11 +1,7 @@
 """
 Some logging configuration and shortcut methods.
 """
-import logging
 from twisted.python import log
-
-observer = log.PythonLoggingObserver()
-observer.start()
 
 def debug(message):
     """
@@ -13,7 +9,7 @@ def debug(message):
     
     :param str message: The message to log.
     """
-    log.msg(message, logLevel=logging.DEBUG)
+    log.msg(message)
 
 def info(message):
     """
@@ -21,7 +17,7 @@ def info(message):
     
     :param str message: The message to log.
     """
-    log.msg(message, logLevel=logging.INFO)
+    log.msg(message)
 
 def warning(message):
     """
@@ -29,7 +25,7 @@ def warning(message):
     
     :param str message: The message to log.
     """
-    log.msg(message, logLevel=logging.WARNING)
+    log.msg(message)
 
 def error(message_or_obj=None):
     """

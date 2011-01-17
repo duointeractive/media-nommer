@@ -12,6 +12,7 @@ from twisted.plugin import IPlugin
 from twisted.application.service import IServiceMaker
 from twisted.application import internet
 from twisted.web.server import Site
+from twisted.python import log
 
 from media_nommer import conf
 from media_nommer.conf.utils import upload_settings

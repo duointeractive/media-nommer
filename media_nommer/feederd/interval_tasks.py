@@ -5,6 +5,7 @@ found here.
 """
 from twisted.internet import task, reactor
 from media_nommer.conf import settings
+from media_nommer.utils import logger
 from media_nommer.feederd.job_cache import JobCache
 from media_nommer.feederd.ec2_instance_manager import EC2InstanceManager
 
@@ -15,6 +16,7 @@ def threaded_check_for_job_state_changes():
     EC2FFmpegNommer. This lets feederd know it needs to get updated job
     details from the SimpleDB domain defined in settings.SIMPLEDB_DOMAIN_NAME.
     """
+    logger.debug("Checking for job state changes.")
     JobCache.refresh_jobs_with_state_changes()
     # If jobs have completed, remove them from the job cache.
     JobCache.uncache_finished_jobs()
@@ -24,7 +26,8 @@ def task_check_for_job_state_changes():
     Checks for job state changes in a non-blocking manner.
     """
     reactor.callInThread(threaded_check_for_job_state_changes)
-task.LoopingCall(task_check_for_job_state_changes).start(10, now=False)
+task.LoopingCall(task_check_for_job_state_changes).start(
+    settings.FEEDERD_JOB_STATE_CHANGE_CHECK_INTERVAL, now=False)
 
 def threaded_prune_jobs():
     """
@@ -37,6 +40,7 @@ def threaded_prune_jobs():
     (a day or so) that are probably dead. It marks them with an ABANDONED
     state, letting us know something went really wrong.
     """
+    logger.debug("Pruning jobs.")
     JobCache.abandon_stale_jobs()
     # Expire any newly abandoned jobs, too. Removes them from job cache.
     JobCache.uncache_finished_jobs()
@@ -47,7 +51,8 @@ def task_prune_jobs():
     domain and feederd's job cache.
     """
     reactor.callInThread(threaded_prune_jobs)
-task.LoopingCall(task_prune_jobs).start(60 * 5, now=False)
+task.LoopingCall(task_prune_jobs).start(
+    settings.FEEDERD_PRUNE_JOBS_INTERVAL, now=False)
 
 def threaded_manage_ec2_instances():
     """
@@ -55,6 +60,7 @@ def threaded_manage_ec2_instances():
     to the pool of currently running EC2 instances. Spawns more EC2 instances
     as needed.
     """
+    logger.debug("Checking EC2 supply and demand.")
     EC2InstanceManager.spawn_if_needed()
 
 def task_manage_ec2_instances():
@@ -63,6 +69,8 @@ def task_manage_ec2_instances():
     """
     reactor.callInThread(threaded_manage_ec2_instances)
 
-if settings.ALLOW_EC2_LAUNCHES:
-    # Only call the instance auto-spawning if enabled.
-    task.LoopingCall(task_manage_ec2_instances).start(60, now=True)
+# Only call the instance auto-spawning if enabled.
+if settings.FEEDERD_ALLOW_EC2_LAUNCHES:
+    logger.debug("feederd will automatically scale EC2 instances.")
+    task.LoopingCall(task_manage_ec2_instances).start(
+        settings.FEEDERD_AUTO_SCALE_INTERVAL, now=True)

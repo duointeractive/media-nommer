@@ -3,6 +3,7 @@ Basic job caching module.
 """
 import datetime
 from media_nommer.conf import settings
+from media_nommer.utils import logger
 from media_nommer.core.job_state_backend import JobStateBackend
 from media_nommer.utils.compat import total_seconds
 
@@ -77,14 +78,17 @@ class JobCache(dict):
         """
         Loads all of the un-finished jobs into the job cache.
         """
+        logger.info("Populating job cache from SimpleDB.")
         jobs = JobStateBackend.get_unfinished_jobs()
         for job in jobs:
             cls.update_job(job)
 
-        print "JOBS LOADED:"
+        logger.info("Jobs loaded from SDB to cache:")
         for job in jobs:
-            print '* %s (%s -- %s)' % (job.unique_id, job.job_state,
-                                       job.is_finished())
+            logger.info('* %s (%s -- %s)' % (
+                job.unique_id, job.job_state,
+                job.is_finished())
+            )
 
     @classmethod
     def refresh_jobs_with_state_changes(cls):
@@ -92,19 +96,20 @@ class JobCache(dict):
         Looks at the state change queue (if your backend has one), and
         partially refreshes the object cache based on which jobs have changed.
         """
+        logger.debug("Checking state change queue.")
         changed_jobs = JobStateBackend.pop_state_changes_from_queue(10)
 
         if changed_jobs:
-            print "INCOMING CHANGES:", changed_jobs
+            logger.info("Changes found: %s" % changed_jobs)
             for job in changed_jobs:
                 if cls.is_job_cached(job):
-                    print "CHANGED %s: %s -> %s" % (
+                    logger.info("Changed %s: %s -> %s" % (
                         job.unique_id,
                         # Current job state in cache
                         cls.get_job(job).job_state,
                         # New incoming job state
                         job.job_state,
-                    )
+                    ))
                     cls.update_job(job)
 
     @classmethod
@@ -123,7 +128,7 @@ class JobCache(dict):
                 tdelta = now_dtime - last_mod
                 inactive_seconds = total_seconds(tdelta)
 
-                if inactive_seconds >= settings.ABANDON_INACTIVE_JOBS_THRESH:
+                if inactive_seconds >= settings.FEEDERD_ABANDON_INACTIVE_JOBS_THRESH:
                     cls.remove_job(job)
                     job.set_job_state('ABANDONED', job.job_state_details)
 

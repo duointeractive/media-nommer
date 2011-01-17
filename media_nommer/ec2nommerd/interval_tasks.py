@@ -30,7 +30,7 @@ def task_check_for_new_jobs():
         print "Job check tic. Starting as many as", num_msgs_to_get
         # This is an iterable of BaseEncodingJob sub-classed instances for
         # each job returned from the queue.
-        jobs = JobStateBackend.pop_jobs_from_queue(num_msgs_to_get)
+        jobs = JobStateBackend.pop_new_jobs_from_queue(num_msgs_to_get)
         print "Queue checked, found", len(jobs)
 
         for job in jobs:
@@ -38,13 +38,18 @@ def task_check_for_new_jobs():
             print "* Starting encoder thread"
             reactor.callInThread(threaded_encode_job, job)
 task.LoopingCall(task_check_for_new_jobs).start(
-    settings.EC2_NOMMERD_NEW_JOB_CHECK_INTERVAL, now=True)
+    settings.NOMMERD_NEW_JOB_CHECK_INTERVAL, now=True)
 
 def threaded_heartbeat():
     """
     Send some basic state data to a SimpleDB domain, for feederd to see.
     """
-    if not NodeStateManager.contemplate_termination():
+    if settings.NOMMERD_TERMINATE_WHEN_IDLE:
+        is_terminated = NodeStateManager.contemplate_termination()
+    else:
+        is_terminated = False
+
+    if not is_terminated:
         NodeStateManager.send_instance_state_update()
 
 def task_heartbeat():
@@ -54,4 +59,5 @@ def task_heartbeat():
     unique IDs, along with some state data.
     """
     reactor.callInThread(threaded_heartbeat)
-task.LoopingCall(task_heartbeat).start(120, now=False)
+task.LoopingCall(task_heartbeat).start(
+    settings.NOMMERD_HEARTBEAT_INTERVAL, now=False)

@@ -101,7 +101,7 @@ class NodeStateManager(object):
         inactive_secs = total_seconds(tdelt)
 
         # If we're over the inactivity threshold...
-        if inactive_secs > settings.EC2_INSTANCE_MAX_INACTIVITY:
+        if inactive_secs > settings.NOMMERD_MAX_INACTIVITY:
             instance_id = get_instance_id()
             conn = cls._aws_ec2_connection()
             # Find this particular EC2 instance via boto.
