@@ -6,11 +6,16 @@ the user's settings.
 
 .. tip:: These settings do not apply to the client library.
 """
-from media_nommer.conf import default_settings
-from media_nommer.utils.conf import SettingsStore
+from media_nommer.conf import settings
 
-settings = SettingsStore(default_settings)
-"""
-This is the object you'll want to import to get at the settings values.
-They are attributes on this object, and are all uppercase.
-"""
+def update_settings_from_module(settings_module):
+    """
+    Given another module with settings in it (usually the user-specified
+    settings), override the defaults with the given values.
+    
+    :param module settings_module: A module with settings as upper-case
+        attributes set.
+    """
+    for setting in dir(settings_module):
+        if setting == setting.upper():
+            setattr(settings, setting, getattr(settings_module, setting))

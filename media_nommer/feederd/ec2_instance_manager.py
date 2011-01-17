@@ -5,7 +5,7 @@ managing EC2 instances for the various nommers.
 import boto
 from boto.exception import EC2ResponseError
 from media_nommer.conf import settings
-from media_nommer.core.job_state_backends import get_default_backend
+from media_nommer.core.job_state_backend import JobStateBackend
 
 class EC2InstanceManager(object):
     """
@@ -64,8 +64,6 @@ class EC2InstanceManager(object):
         :returns: If instances are spawned, return a boto Reservation
             object. If no instances are spawned, ``None`` is returned.
         """
-        backend = get_default_backend()
-
         instances = cls.get_instances()
         num_instances = len(instances)
         print "NUM INSTANCES", num_instances
@@ -74,7 +72,7 @@ class EC2InstanceManager(object):
             # No more instances, no spawning allowed.
             return
 
-        unfinished_jobs = backend.get_unfinished_jobs()
+        unfinished_jobs = JobStateBackend.get_unfinished_jobs()
         num_unfinished_jobs = len(unfinished_jobs)
         print "UNFINISHED JOBS", num_unfinished_jobs
 

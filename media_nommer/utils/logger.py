@@ -1,6 +1,7 @@
 """
 Some logging configuration and shortcut methods.
 """
+import logging
 from twisted.python import log
 
 observer = log.PythonLoggingObserver()

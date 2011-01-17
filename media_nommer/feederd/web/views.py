@@ -1,9 +1,8 @@
 import cgi
 import simplejson
 from media_nommer.utils.views import BaseView
-from media_nommer.utils.uri_parsing import get_values_from_media_uri, InvalidUri
 from media_nommer.conf import settings
-from media_nommer.core.job_state_backends import EncodingJob
+from media_nommer.core.job_state_backend import EncodingJob
 from media_nommer.feederd.job_cache import JobCache
 
 class JobSubmitView(BaseView):

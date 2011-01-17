@@ -3,10 +3,14 @@ Basic job caching module.
 """
 import datetime
 from media_nommer.conf import settings
-from media_nommer.core.job_state_backends import get_default_backend
+from media_nommer.core.job_state_backend import JobStateBackend
 from media_nommer.utils.compat import total_seconds
 
 class JobCache(dict):
+    """
+    Caches currently active EncodingJob objects. This is presently only
+    un-finished jobs.
+    """
     CACHE = {}
 
     @classmethod
@@ -60,10 +64,10 @@ class JobCache(dict):
         return cls.CACHE
 
     @classmethod
-    def get_jobs_with_state(self, state):
+    def get_jobs_with_state(cls, state):
         """
         Given a valid job state (refer to 
-        media_nommer.core.job_state_backends.BaseJobStateBackend.JOB_STATES),
+        media_nommer.core.job_state_backend.job_state.AWSJobStateBackend.JOB_STATES),
         return all jobs that currently have this state
         """
         return [job for id, job in cls.get_cached_jobs.items() if job.job_state == state]
@@ -73,7 +77,7 @@ class JobCache(dict):
         """
         Loads all of the un-finished jobs into the job cache.
         """
-        jobs = get_default_backend().get_unfinished_jobs()
+        jobs = JobStateBackend.get_unfinished_jobs()
         for job in jobs:
             cls.update_job(job)
 
@@ -88,7 +92,7 @@ class JobCache(dict):
         Looks at the state change queue (if your backend has one), and
         partially refreshes the object cache based on which jobs have changed.
         """
-        changed_jobs = get_default_backend().pop_state_changes_from_queue(10)
+        changed_jobs = JobStateBackend.pop_state_changes_from_queue(10)
 
         if changed_jobs:
             print "INCOMING CHANGES:", changed_jobs

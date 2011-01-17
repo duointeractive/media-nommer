@@ -14,9 +14,8 @@ from twisted.application.service import IServiceMaker
 from twisted.application import internet
 from twisted.web.server import Site
 
-from media_nommer.conf import settings
+from media_nommer import conf
 from media_nommer.conf.utils import download_settings
-from media_nommer.utils.conf import NoConfigFileException
 from media_nommer.ec2nommerd.web.urls import API
 
 class Options(usage.Options):
@@ -86,11 +85,11 @@ class WebApiServiceMaker(object):
                       "sys.path. Correct your path or specify another config " \
                       "module with the --config parameter when running the " \
                       "feederd Twisted plugin." % cfg_file
-            raise NoConfigFileException(message)
+            raise Exception(message)
 
         # Now that the user's settings have been imported, populate the
         # global settings object and override defaults with the user's values.
-        settings.update_settings_from_module(user_settings)
+        conf.update_settings_from_module(user_settings)
 
     def start_tasks(self, options):
         """

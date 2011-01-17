@@ -3,9 +3,8 @@ This module contains tasks that are executed at intervals, and is imported at
 the time the server is started. Much of feederd's 'intelligence' can be
 found here.
 """
-from twisted.internet import task, threads, reactor
+from twisted.internet import task, reactor
 from media_nommer.conf import settings
-from media_nommer.core.job_state_backends import get_default_backend
 from media_nommer.feederd.job_cache import JobCache
 from media_nommer.feederd.ec2_instance_manager import EC2InstanceManager
 
@@ -25,11 +24,7 @@ def task_check_for_job_state_changes():
     Checks for job state changes in a non-blocking manner.
     """
     reactor.callInThread(threaded_check_for_job_state_changes)
-
-if get_default_backend().pop_state_changes_from_queue.enabled:
-    # If the default backend tracks state changes from a queue of some sort,
-    # this thread handles that.
-    task.LoopingCall(task_check_for_job_state_changes).start(10, now=False)
+task.LoopingCall(task_check_for_job_state_changes).start(10, now=False)
 
 def threaded_prune_jobs():
     """

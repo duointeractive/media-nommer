@@ -2,12 +2,9 @@
 This module contains tasks that are executed at intervals, and is imported at
 the time the server is started.
 """
-import time
-from twisted.internet import task, threads, reactor
-from twisted.python import log
-from twisted.python.threadpool import ThreadPool
+from twisted.internet import task, reactor
 from media_nommer.conf import settings
-from media_nommer.core.job_state_backends import get_default_backend
+from media_nommer.core.job_state_backend import JobStateBackend
 from media_nommer.ec2nommerd.node_state import NodeStateManager
 
 def threaded_encode_job(job):
@@ -31,18 +28,17 @@ def task_check_for_new_jobs():
         # We have more room for encoding threads, determine how many.
         num_msgs_to_get = max(0, max_threads - num_active_threads)
         print "Job check tic. Starting as many as", num_msgs_to_get
-        # Reference to our instantiated job state backend.
-        job_state_backend = get_default_backend()
         # This is an iterable of BaseEncodingJob sub-classed instances for
         # each job returned from the queue.
-        jobs = job_state_backend.pop_jobs_from_queue(num_msgs_to_get)
+        jobs = JobStateBackend.pop_jobs_from_queue(num_msgs_to_get)
         print "Queue checked, found", len(jobs)
 
         for job in jobs:
             # For each job returned, render in another thread.
             print "* Starting encoder thread"
             reactor.callInThread(threaded_encode_job, job)
-task.LoopingCall(task_check_for_new_jobs).start(60, now=True)
+task.LoopingCall(task_check_for_new_jobs).start(
+    settings.EC2_NOMMERD_NEW_JOB_CHECK_INTERVAL, now=True)
 
 def threaded_heartbeat():
     """

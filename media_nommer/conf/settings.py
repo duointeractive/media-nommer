@@ -47,15 +47,14 @@ MAX_NUM_EC2_INSTANCES = 3
 # If we our number of unfinished jobs exceeds our capacity by this number of
 # jobs, look at starting new instances.
 EC2_JOB_OVERFLOW_THRESH = 2
+# An interval (in seconds) to wait between calls to AWS to check for new jobs.
+EC2_NOMMERD_NEW_JOB_CHECK_INTERVAL = 10
 
 # Storage backends. The protocol is the key, the value is the class used to
 # access said protocol.
 STORAGE_BACKENDS = {
     's3': 'media_nommer.core.storage_backends.s3.S3Backend',
 }
-
-# Job state backends track job queues and the state of the entries.
-JOB_STATE_BACKEND = 'media_nommer.core.job_state_backends.aws.AWSJobStateBackend'
 
 # A dict of workflow presets.
 PRESETS = ()
