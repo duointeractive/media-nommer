@@ -14,7 +14,7 @@ class NodeStateManager(object):
     Tracks this node's state, reports it to feederd, and terminates itself
     if certain conditions of inactivity are met.
     
-    TODO: Move the SDB parts of this to the backend system.
+    TODO: Make these method names consistent with the JobStateBackend.
     """
     LAST_DTIME_I_DID_SOMETHING = datetime.datetime.now()
 

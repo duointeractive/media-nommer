@@ -1,3 +1,17 @@
+"""
+The job state backend provides a simple API for feederd_ and ec2nommerd_ to
+store and retrieve job state information. This can be everything from the
+list of currently un-finished jobs, to the down-to-the-minute status of
+individual jobs.
+
+There are two pieces to the job state backend:
+
+* The :py:class:`EncodingJob` class is used to interact with and manipulate
+  individual jobs and their state.
+* The :py:class:`JobStateBackend` class is used to operate as the topmost
+  manager. It can track all of the currently running jobs, get new jobs
+  from the SQS queue, and process state change notifications from SQS.
+"""
 import random
 import hashlib
 import datetime
@@ -15,7 +29,7 @@ class EncodingJob(object):
     def __init__(self, source_path, dest_path, nommer, job_options,
                  unique_id=None, job_state='PENDING', job_state_details=None,
                  notify_url=None, creation_dtime=None,
-                 last_modified_dtime=None, backend=None):
+                 last_modified_dtime=None):
         """
         Document me.
         """
@@ -83,7 +97,8 @@ class EncodingJob(object):
         Send a message to a state change SQS that lets feederd know to
         re-load the job from memory.
         """
-        logger.debug("Sending job state change notification for %s" % self.unique_id)
+        logger.debug("EncodingJob._send_state_change_notification(): " \
+                     "Sending job state change for %s" % self.unique_id)
         sqs_message = Message()
         sqs_message.set_body(self.unique_id)
         JobStateBackend._get_sqs_state_change_queue().write(sqs_message)
