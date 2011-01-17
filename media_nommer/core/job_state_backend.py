@@ -87,7 +87,7 @@ class AWSEncodingJob(object):
         Send a message to a state change SQS that lets feederd know to
         re-load the job from memory.
         """
-        print "SENDING STATE CHANGE NOTIFICATION"
+        logger.debug("Sending job state change notification for %s" % self.unique_id)
         sqs_message = Message()
         sqs_message.set_body(self.unique_id)
         JobStateBackend._aws_sqs_state_change_queue.write(sqs_message)
@@ -106,13 +106,13 @@ class AWSEncodingJob(object):
             # This serves as the "FK" equivalent.
             self.unique_id = self._generate_unique_job_id()
             # Create the item in the domain.
-            job = JobStateBackend._aws_sdb_domain.new_item(self.unique_id)
+            job = JobStateBackend._aws_sdb_job_state_domain.new_item(self.unique_id)
             # Start populating values.
             self.creation_dtime = now_dtime
             self.job_state = 'PENDING'
         else:
             # Retrieve the existing item for the job.
-            job = JobStateBackend._aws_sdb_domain.get_item(self.unique_id)
+            job = JobStateBackend._aws_sdb_job_state_domain.get_item(self.unique_id)
             if job is None:
                 msg = 'AWSEncodingJob.save(): ' \
                       'No match found in DB for ID: %s' % self.unique_id
@@ -145,7 +145,7 @@ class AWSEncodingJob(object):
             print "QUEING", job['unique_id']
             sqs_message = Message()
             sqs_message.set_body(job['unique_id'])
-            JobStateBackend._aws_sqs_queue.write(sqs_message)
+            JobStateBackend._aws_sqs_new_job_queue.write(sqs_message)
 
         return job['unique_id']
 
@@ -194,16 +194,11 @@ class AWSJobStateBackend(object):
     # won't do anything else with them.
     FINISHED_STATES = ['FINISHED', 'ERROR', 'ABANDONED']
 
-    # Start as a None value so we can lazy load.
+    # The following AWS fields are for lazy-loading.
     __aws_sdb_connection = None
-    # Ditto.
-    __aws_sdb_domain = None
-    # Another ditto.
+    __aws_sdb_job_state_domain = None
     __aws_sqs_connection = None
-    # Triple ditto.
-    __aws_sqs_queue = None
-    # Lazy-loaded SQS queue for announcing state changes. Do not access
-    # this directly, go through the similarly named property.
+    __aws_sqs_new_job_queue = None
     __aws_sqs_state_change_queue = None
 
     @property
@@ -221,17 +216,17 @@ class AWSJobStateBackend(object):
         return self.__aws_sdb_connection
 
     @property
-    def _aws_sdb_domain(self):
+    def _aws_sdb_job_state_domain(self):
         """
         Lazy-loading of the SimpleDB boto domain. Refer to this instead of
-        referencing self.__aws_sdb_domain directly.
+        referencing self.__aws_sdb_job_state_domain directly.
 
         :returns: A boto SimpleDB domain for this workflow.
         """
-        if not self.__aws_sdb_domain:
-            self.__aws_sdb_domain = self._aws_sdb_connection.create_domain(
-                                        settings.SIMPLEDB_DOMAIN_NAME)
-        return self.__aws_sdb_domain
+        if not self.__aws_sdb_job_state_domain:
+            self.__aws_sdb_job_state_domain = self._aws_sdb_connection.create_domain(
+                                        settings.SIMPLEDB_JOB_STATE_DOMAIN)
+        return self.__aws_sdb_job_state_domain
 
     @property
     def _aws_sqs_connection(self):
@@ -248,23 +243,23 @@ class AWSJobStateBackend(object):
         return self.__aws_sqs_connection
 
     @property
-    def _aws_sqs_queue(self):
+    def _aws_sqs_new_job_queue(self):
         """
         Lazy-loading of the SQS boto queue. Refer to this instead of
-        referencing self.__aws_sqs_queue directly.
+        referencing self.__aws_sqs_new_job_queue directly.
 
         :returns: A boto SQS queue.
         """
-        if not self.__aws_sqs_queue:
-            self.__aws_sqs_queue = self._aws_sqs_connection.create_queue(
-                settings.SQS_QUEUE_NAME)
-        return self.__aws_sqs_queue
+        if not self.__aws_sqs_new_job_queue:
+            self.__aws_sqs_new_job_queue = self._aws_sqs_connection.create_queue(
+                settings.SQS_NEW_JOB_QUEUE_NAME)
+        return self.__aws_sqs_new_job_queue
 
     @property
     def _aws_sqs_state_change_queue(self):
         """
         Lazy-loading of the SQS boto queue. Refer to this instead of
-        referencing self.__aws_sqs_queue directly.
+        referencing self.__aws_sqs_state_change_queue directly.
 
         :returns: A boto SQS queue.
         """
@@ -287,7 +282,7 @@ class AWSJobStateBackend(object):
         """
         Given a job's unique ID, return an EncodingJob instance.
         """
-        item = self._aws_sdb_domain.get_item(unique_id)
+        item = self._aws_sdb_job_state_domain.get_item(unique_id)
         if item is None:
             msg = 'AWSJobStateBackend.get_job_object_from_id(): ' \
                   'No unique ID match for: %s' % unique_id
@@ -326,17 +321,17 @@ class AWSJobStateBackend(object):
         :returns: ``True`` if successful. ``False`` if not.
         """
         try:
-            self._aws_sdb_connection.delete_domain(settings.SIMPLEDB_DOMAIN_NAME)
-            self._aws_sqs_queue.clear()
+            self._aws_sdb_connection.delete_domain(settings.SIMPLEDB_JOB_STATE_DOMAIN)
+            self._aws_sqs_new_job_queue.clear()
         except boto.exception.SDBResponseError:
             # Tried to delete a domain that doesn't exist. We probably haven't
             # ran feederd before, or are doing testing.
             pass
 
         # Reset our local cache of the boto SDB domain object.
-        self._aws_sdb_domain = None
+        self._aws_sdb_job_state_domain = None
         # Reset our local cache of the boto SQS queue object.
-        self._aws_sqs_queue = None
+        self._aws_sqs_new_job_queue = None
 
     def get_unfinished_jobs(self):
         """
@@ -348,12 +343,12 @@ class AWSJobStateBackend(object):
         query_str = "SELECT * FROM %s WHERE job_state != '%s' " \
                     "and job_state != '%s' " \
                     "and job_state != '%s'" % (
-              settings.SIMPLEDB_DOMAIN_NAME,
+              settings.SIMPLEDB_JOB_STATE_DOMAIN,
               self.JOB_STATES['FINISHED'],
               self.JOB_STATES['ERROR'],
               self.JOB_STATES['ABANDONED']
         )
-        results = self._aws_sdb_domain.select(query_str)
+        results = self._aws_sdb_job_state_domain.select(query_str)
 
         jobs = []
         for item in results:
@@ -406,7 +401,7 @@ class AWSJobStateBackend(object):
         """
         Pops any new jobs from the job queue.
         """
-        return self._pop_jobs_from_queue(self._aws_sqs_queue,
+        return self._pop_jobs_from_queue(self._aws_sqs_new_job_queue,
                                          num_to_pop,
                                          visibility_timeout=3600)
 

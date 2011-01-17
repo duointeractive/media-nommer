@@ -14,9 +14,8 @@ def threaded_check_for_job_state_changes():
     Checks the SQS queue specified in settings.SQS_JOB_STATE_CHANGE_QUEUE_NAME
     for announcements of state changes from external nommers like
     EC2FFmpegNommer. This lets feederd know it needs to get updated job
-    details from the SimpleDB domain defined in settings.SIMPLEDB_DOMAIN_NAME.
+    details from the SimpleDB domain defined in settings.SIMPLEDB_JOB_STATE_DOMAIN.
     """
-    logger.debug("Checking for job state changes.")
     JobCache.refresh_jobs_with_state_changes()
     # If jobs have completed, remove them from the job cache.
     JobCache.uncache_finished_jobs()
@@ -34,20 +33,19 @@ def threaded_prune_jobs():
     Sometimes failure happens, but a Nommer doesn't handle said failure
     gracefully. Instead of state changing to ERROR, it gets stuck in
     some un-finished state in the SimpleDB domain defined in
-    settings.SIMPLEDB_DOMAIN_NAME.
+    settings.SIMPLEDB_JOB_STATE_DOMAIN.
     
     This process finds jobs that haven't been updated in a very long time
     (a day or so) that are probably dead. It marks them with an ABANDONED
     state, letting us know something went really wrong.
     """
-    logger.debug("Pruning jobs.")
     JobCache.abandon_stale_jobs()
     # Expire any newly abandoned jobs, too. Removes them from job cache.
     JobCache.uncache_finished_jobs()
 
 def task_prune_jobs():
     """
-    Prune expired or abandoned jobs from the settings.SIMPLEDB_DOMAIN_NAME
+    Prune expired or abandoned jobs from the settings.SIMPLEDB_JOB_STATE_DOMAIN
     domain and feederd's job cache.
     """
     reactor.callInThread(threaded_prune_jobs)
@@ -60,7 +58,6 @@ def threaded_manage_ec2_instances():
     to the pool of currently running EC2 instances. Spawns more EC2 instances
     as needed.
     """
-    logger.debug("Checking EC2 supply and demand.")
     EC2InstanceManager.spawn_if_needed()
 
 def task_manage_ec2_instances():

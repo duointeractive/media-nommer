@@ -16,13 +16,13 @@ AWS_SECRET_ACCESS_KEY = None
 CONFIG_S3_BUCKET = 'nommer_config'
 
 # The SQS queue to use for storing encoding state info.
-SQS_QUEUE_NAME = 'media_nommer'
+SQS_NEW_JOB_QUEUE_NAME = 'media_nommer'
 SQS_JOB_STATE_CHANGE_QUEUE_NAME = 'media_nommer_jstate'
 
 # The SimpleDB domain name for storing encoding job state in.
-SIMPLEDB_DOMAIN_NAME = 'media_nommer'
+SIMPLEDB_JOB_STATE_DOMAIN = 'media_nommer'
 # SimpleDB domain for storing EC2 instance nommer state in.
-SIMPLEDB_EC2_NOMMER_STATE = 'media_nommer_ec2nommer_state'
+SIMPLEDB_EC2_NOMMER_STATE_DOMAIN = 'media_nommer_ec2nommer_state'
 
 """
 Intelligent scaling settings

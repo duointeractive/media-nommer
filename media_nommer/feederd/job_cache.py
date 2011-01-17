@@ -68,7 +68,7 @@ class JobCache(dict):
     def get_jobs_with_state(cls, state):
         """
         Given a valid job state (refer to 
-        media_nommer.core.job_state_backend.job_state.AWSJobStateBackend.JOB_STATES),
+        media_nommer.core.job_state_backend.JobStateBackend.JOB_STATES),
         return all jobs that currently have this state
         """
         return [job for id, job in cls.get_cached_jobs.items() if job.job_state == state]
@@ -100,10 +100,10 @@ class JobCache(dict):
         changed_jobs = JobStateBackend.pop_state_changes_from_queue(10)
 
         if changed_jobs:
-            logger.info("Changes found: %s" % changed_jobs)
+            logger.info("Job state changes found: %s" % changed_jobs)
             for job in changed_jobs:
                 if cls.is_job_cached(job):
-                    logger.info("Changed %s: %s -> %s" % (
+                    logger.info("* Job state changed %s: %s -> %s" % (
                         job.unique_id,
                         # Current job state in cache
                         cls.get_job(job).job_state,
@@ -142,5 +142,5 @@ class JobCache(dict):
         """
         for id, job in cls.CACHE.items():
             if job.is_finished():
-                print "EXPIRING CACHE", id, job.job_state, job.is_finished()
+                logger.info("Removing job %s from job cache." % id)
                 cls.remove_job(id)
