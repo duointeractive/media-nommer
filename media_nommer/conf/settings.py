@@ -57,12 +57,12 @@ nommerd settings
 NOMMERD_TERMINATE_WHEN_IDLE = True
 # How many seconds of inactivity (not working on any jobs) before an
 # instance will terminate itself.
-NOMMERD_MAX_INACTIVITY = 120
+NOMMERD_MAX_INACTIVITY = 60 * 5
 # How long to wait between sending a status update to SimpleDB from your
 # EC2 encoder instances. Also check for inactivity greater than the configured
 # value in NOMMERD_MAX_INACTIVITY, and terminate oneself if inactivity
 # has exceeded that value, and NOMMERD_TERMINATE_WHEN_IDLE is True.
-NOMMERD_HEARTBEAT_INTERVAL = 120
+NOMMERD_HEARTBEAT_INTERVAL = 60
 # An interval (in seconds) to wait between calls to AWS to check for new jobs.
 NOMMERD_NEW_JOB_CHECK_INTERVAL = 60
 
@@ -72,7 +72,7 @@ feederd settings
 # Number of seconds between checking the job state change queue for updates.
 FEEDERD_JOB_STATE_CHANGE_CHECK_INTERVAL = 60
 # How often to check for abandoned or expired jobs.
-FEEDERD_PRUNE_JOBS_INTERVAL = 60
+FEEDERD_PRUNE_JOBS_INTERVAL = 60 * 5
 # When True, allow the launching of new EC2 instances.
 FEEDERD_ALLOW_EC2_LAUNCHES = True
 # If a job sticks in an un-finished state after this long (in seconds), it
