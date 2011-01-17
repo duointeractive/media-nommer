@@ -63,7 +63,7 @@ class NodeStateManager(object):
         """
         if not cls.__aws_sdb_domain:
             cls.__aws_sdb_domain = cls._aws_sdb_connection().create_domain(
-                                        settings.SIMPLEDB_JOB_STATE_DOMAIN)
+                                    settings.SIMPLEDB_EC2_NOMMER_STATE_DOMAIN)
         return cls.__aws_sdb_domain
 
     @classmethod
