@@ -1,6 +1,9 @@
+"""
+This module contains an S3Backend class for working with URIs that have
+an s3:// protocol specified.
+"""
 import boto
 from boto.s3.resumable_download_handler import ResumableDownloadHandler
-from media_nommer.conf import settings
 from media_nommer.utils import logger
 from media_nommer.utils.uri_parsing import get_values_from_media_uri
 
@@ -8,7 +11,6 @@ class S3Backend(object):
     """
     Abstracts access to S3 via the common set of file storage backend methods.
     """
-
     @classmethod
     def _get_aws_s3_connection(cls, access_key, secret_access_key):
         """
@@ -31,15 +33,18 @@ class S3Backend(object):
         # Breaks the URI into usable componenents.
         values = get_values_from_media_uri(uri)
 
-        conn = cls._get_aws_s3_connection(values['username'], values['password'])
+        conn = cls._get_aws_s3_connection(values['username'],
+                                          values['password'])
         bucket = conn.get_bucket(values['host'])
         key = bucket.get_key(values['path'])
 
-        logger.debug("S3Backend.download_file(): Downloading: %s" % uri)
+        logger.debug("S3Backend.download_file(): " \
+                     "Downloading: %s" % uri)
         dlhandler = ResumableDownloadHandler(num_retries=10)
         dlhandler.get_file(key, fobj, None)
 
-        logger.debug("S3Backend.download_file(): Download of %s completed." % uri)
+        logger.debug("S3Backend.download_file(): " \
+                     "Download of %s completed." % uri)
         return fobj
 
     @classmethod
@@ -56,11 +61,13 @@ class S3Backend(object):
         values = get_values_from_media_uri(uri)
         logger.debug("S3Backend.upload_file(): Received: %s" % values)
 
-        conn = cls._get_aws_s3_connection(values['username'], values['password'])
+        conn = cls._get_aws_s3_connection(values['username'],
+                                          values['password'])
         bucket = conn.create_bucket(values['host'])
         key = bucket.new_key(values['path'])
 
-        logger.debug("S3Backend.upload_file(): Settings contents of '%s' key from %s" % (
+        logger.debug("S3Backend.upload_file(): "\
+                     "Settings contents of '%s' key from %s" % (
             values['path'], fobj.name))
         key.set_contents_from_filename(fobj.name)
 

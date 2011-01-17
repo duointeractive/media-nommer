@@ -29,9 +29,6 @@ class EC2FFmpegNommer(BaseNommer):
         # Upload the encoding output file to its final destination.
         self.upload_to_destination(out_fobj)
 
-        # TODO: Check to see if they wanted to delete or copy the original 
-        # file after a successful run.
-
         self.job.set_job_state('FINISHED')
         logger.info("EC2FFmpegNommer: Job %s has been successfully encoded." % self.job.unique_id)
         fobj.close()

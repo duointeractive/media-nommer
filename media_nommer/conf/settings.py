@@ -4,9 +4,10 @@ daemons start, these are loaded as initial values, then the user's settings
 override anything here.
 """
 
-"""
-General AWS settings
-"""
+######################
+#General AWS settings
+######################
+
 # These AWS credentials are used for job state management via SimpleDB, and
 # queueing with SQS.
 AWS_ACCESS_KEY_ID = None
@@ -24,9 +25,10 @@ SIMPLEDB_JOB_STATE_DOMAIN = 'media_nommer'
 # SimpleDB domain for storing EC2 instance nommer state in.
 SIMPLEDB_EC2_NOMMER_STATE_DOMAIN = 'media_nommer_ec2nommer_state'
 
-"""
-Intelligent scaling settings
-"""
+###############################
+# Intelligent scaling settings
+###############################
+
 # The maximum number of jobs that should ever run on a single instance at
 # the same time.
 MAX_ENCODING_JOBS_PER_EC2_INSTANCE = 1
@@ -36,9 +38,10 @@ MAX_NUM_EC2_INSTANCES = 3
 # jobs, look at starting new instances.
 JOB_OVERFLOW_THRESH = 2
 
-"""
-EC2 instance settings
-"""
+########################
+# EC2 instance settings
+########################
+
 # The user key with which to launch the instance.
 EC2_KEY_NAME = 'your_key'
 # The security groups to create EC2 instances under.
@@ -49,9 +52,10 @@ EC2_AMI_ID = 'ami-847c8ded'
 # small instances are *NOT* supported by the default AMI.
 EC2_INSTANCE_TYPE = 'm1.large'
 
-"""
-nommerd settings
-"""
+###################
+# nommerd settings
+###################
+
 # When True, allow the termination of idle EC2 instances based on 
 # the NOMMERD_MAX_INACTIVITY setting.
 NOMMERD_TERMINATE_WHEN_IDLE = True
@@ -66,9 +70,10 @@ NOMMERD_HEARTBEAT_INTERVAL = 60
 # An interval (in seconds) to wait between calls to AWS to check for new jobs.
 NOMMERD_NEW_JOB_CHECK_INTERVAL = 60
 
-"""
-feederd settings
-"""
+###################
+# feederd settings
+###################
+
 # Number of seconds between checking the job state change queue for updates.
 FEEDERD_JOB_STATE_CHANGE_CHECK_INTERVAL = 60
 # How often to check for abandoned or expired jobs.
@@ -82,9 +87,10 @@ FEEDERD_ABANDON_INACTIVE_JOBS_THRESH = 3600 * 24
 # EC2 instances.
 FEEDERD_AUTO_SCALE_INTERVAL = 60
 
-"""
-General settings
-"""
+##################
+#General settings
+##################
+
 # Storage backends. The protocol is the key, the value is the class used to
 # access said protocol.
 STORAGE_BACKENDS = {

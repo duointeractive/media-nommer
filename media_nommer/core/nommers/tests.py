@@ -1,3 +1,6 @@
+"""
+Unit tests for the base_nommer.BaseNommer class.
+"""
 import unittest
 
 class BaseNommerTests(unittest.TestCase):

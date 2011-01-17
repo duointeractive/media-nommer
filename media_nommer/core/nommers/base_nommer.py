@@ -6,12 +6,12 @@ between Nommers.
 import os
 import tempfile
 from media_nommer.utils import logger
-from media_nommer.core.storage_backends import get_storage_backend_for_uri
+from media_nommer.core.storage_backends import get_backend_for_uri
 
 class BaseNommer(object):
     """
     This is a base class that can be sub-classed by each Nommer to serve
-    as a foundation. Required methods raise a NotImplemented exception
+    as a foundation. Required methods raise a NotImplementedError exception
     by default, unless overridden by child classes.
     """
     def __init__(self, job):
@@ -31,7 +31,7 @@ class BaseNommer(object):
         
         Needs to set one of the two job states: FINISHED, ERROR
         """
-        raise NotImplemented
+        raise NotImplementedError
 
     def download_source_file(self):
         """
@@ -43,7 +43,7 @@ class BaseNommer(object):
         file_uri = self.job.source_path
         logger.debug("BaseNommer.download_source_file(): Attempting to download %s" % file_uri)
         # Figure out which backend to use for the protocol in the URI.
-        storage = get_storage_backend_for_uri(file_uri)
+        storage = get_backend_for_uri(file_uri)
         # Create a temporary file which will be auto deleted when
         # garbage collected.
         fobj = tempfile.NamedTemporaryFile(mode='w+b', delete=True)
@@ -67,6 +67,6 @@ class BaseNommer(object):
         self.job.set_job_state('UPLOADING')
         file_uri = self.job.dest_path
         logger.debug("BaseNommer.upload_to_destination(): Attempting to upload %s to %s" % (fobj.name, file_uri))
-        storage = get_storage_backend_for_uri(file_uri)
+        storage = get_backend_for_uri(file_uri)
         storage.upload_file(file_uri, fobj)
         logger.debug("BaseNommer.upload_to_destination(): Finished uploading %s to %s" % (fobj.name, file_uri))

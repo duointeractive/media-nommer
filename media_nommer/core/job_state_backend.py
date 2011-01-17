@@ -168,7 +168,7 @@ class EncodingJob(object):
 class JobStateBackend(object):
     """
     This is a base class that can be sub-classed by each backend to serve
-    as a foundation. Required methods raise a NotImplemented exception
+    as a foundation. Required methods raise a NotImplementedError exception
     by default, unless overridden by child classes.
     """
     JOB_STATES = ['PENDING', 'DOWNLOADING', 'ENCODING', 'UPLOADING',
