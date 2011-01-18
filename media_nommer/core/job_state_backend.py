@@ -271,8 +271,6 @@ class JobStateBackend(object):
         """
         Given an SDB item, instantiate and return an EncodingJob.
         """
-        # Add a reference to this backend object for the job to use.
-        item['backend'] = cls
         # Pass the SDB item as a dict to be used as args to constructor.
         job = EncodingJob(**item)
         return job
@@ -337,6 +335,7 @@ class JobStateBackend(object):
             except TypeError:
                 message = "JobStateBackend.get_unfinished_jobs(): Unable to instantiate job: %s" % item
                 logger.error(message_or_obj=message)
+                logger.error()
                 continue
             jobs.append(job)
 

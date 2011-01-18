@@ -96,11 +96,13 @@ class WebApiServiceMaker(object):
         Tasks are started by importing the interval_tasks module. Only do this
         once the settings have been loaded by self.load_settings().
         """
-        from media_nommer.ec2nommerd.ec2_utils import get_instance_id
+        from media_nommer.ec2nommerd.node_state import NodeStateManager
 
         is_local = options.get('local', 0) == 1
-        # if we're developing local, don't try to get an instance ID from AWS.
-        get_instance_id(is_local=is_local)
+        # If we're developing local, don't try to get an instance ID from AWS.
+        # No need to store the result of this, we just want it to be cached
+        # for the heartbeat task to use after startup.
+        NodeStateManager.get_instance_id(is_local=is_local)
 
         from media_nommer.ec2nommerd import interval_tasks
 
