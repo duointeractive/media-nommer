@@ -94,6 +94,7 @@ class WebApiServiceMaker(object):
         once the settings have been loaded by self.load_settings().
         """
         from media_nommer.feederd import interval_tasks
+        interval_tasks.register_tasks()
 
 # Now construct an object which *provides* the relevant interfaces
 # The name of this variable is irrelevant, as long as there is *some*

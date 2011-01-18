@@ -9,8 +9,10 @@ from media_nommer.utils.compat import total_seconds
 
 class JobCache(dict):
     """
-    Caches currently active EncodingJob objects. This is presently only
-    un-finished jobs.
+    Caches currently active 
+    :py:class:`media_nommer.core.job_state_backend.EncodingJob` objects. 
+    This is presently only un-finished jobs, as defined by
+    :py:attr:`media_nommer.core.job_state_backend.JobStateBackend.FINISHED_STATES`.
     """
     CACHE = {}
 
@@ -19,6 +21,10 @@ class JobCache(dict):
         """
         Updates a job in the cache. Creates the key if it doesn't
         already exist.
+        
+        
+        :type job: :py:class:`EncodingJob <media_nommer.core.job_state_backend.EncodingJob>`
+        :param job: The job to update (or create) a cache entry for.
         """
         cls.CACHE[job.unique_id] = job
 
@@ -26,6 +32,11 @@ class JobCache(dict):
     def get_job(cls, job):
         """
         Given a job's unique id, return the job object from the cache.
+        
+        :type job: :py:class:`EncodingJob <media_nommer.core.job_state_backend.EncodingJob>`
+        :param job: A job's unique ID or a job object.
+        :rtype: :py:class:`EncodingJob <media_nommer.core.job_state_backend.EncodingJob>`
+        :returns: The cached encoding job.
         """
         if isinstance(job, basestring):
             key = job
@@ -37,6 +48,9 @@ class JobCache(dict):
     def remove_job(cls, job):
         """
         Removes a job from the cache.
+        
+        :type job: ``str`` or :py:class:`EncodingJob <media_nommer.core.job_state_backend.EncodingJob>`
+        :param job: A job's unique ID or a job object.
         """
         if isinstance(job, basestring):
             key = job
@@ -49,6 +63,12 @@ class JobCache(dict):
         """
         Given a job object or a unique id, return True if said job is cached, 
         and False if not.
+        
+        :type job: ``str`` or :py:class:`EncodingJob <media_nommer.core.job_state_backend.EncodingJob>`
+        :param job: A job's unique ID or a job object.
+        :rtype: bool
+        :returns: ``True`` if the given job exists in the cache, ``False``
+            if otherwise.
         """
         if isinstance(job, basestring):
             key = job
@@ -61,6 +81,12 @@ class JobCache(dict):
         """
         Returns a dict of all cached jobs. The keys are unique IDs, the
         values are the job objects.
+        
+        :rtype: dict
+        :returns: A dictionary with the keys being unique IDs of cached jobs,
+            and the values being 
+            :py:class:`EncodingJob <media_nommer.core.job_state_backend.EncodingJob>`
+            instances.
         """
         return cls.CACHE
 
@@ -68,15 +94,20 @@ class JobCache(dict):
     def get_jobs_with_state(cls, state):
         """
         Given a valid job state (refer to 
-        media_nommer.core.job_state_backend.JobStateBackend.JOB_STATES),
-        return all jobs that currently have this state
+        :py:attr:`media_nommer.core.job_state_backend.JobStateBackend.JOB_STATES`),
+        return all jobs that currently have this state.
+        
+        :param str state: The job state to query by.
+        :rtype: ``list`` of :py:class:`EncodingJob <media_nommer.core.job_state_backend.EncodingJob>`
+        :returns: A list of jobs matching the given state.
         """
         return [job for id, job in cls.get_cached_jobs.items() if job.job_state == state]
 
     @classmethod
     def load_recent_jobs_at_startup(cls):
         """
-        Loads all of the un-finished jobs into the job cache.
+        Loads all of the un-finished jobs into the job cache. This is
+        performed when :doc:`../feederd` starts.
         """
         logger.info("Populating job cache from SimpleDB.")
         jobs = JobStateBackend.get_unfinished_jobs()
@@ -93,10 +124,16 @@ class JobCache(dict):
     @classmethod
     def refresh_jobs_with_state_changes(cls):
         """
-        Looks at the state change queue (if your backend has one), and
-        partially refreshes the object cache based on which jobs have changed.
+        Looks at the state SQS queue specified by the
+        :py:data:`SQS_JOB_STATE_CHANGE_QUEUE_NAME <media_nommer.conf.settings.SQS_JOB_STATE_CHANGE_QUEUE_NAME>`
+        setting and refreshes any jobs that have changed. This simply reloads
+        the job's details from SimpleDB_.
+        
+        :rtype: ``list`` of :py:class:`EncodingJob <media_nommer.core.job_state_backend.EncodingJob>`
+        :returns: A list of changed :py:class:`EncodingJob` objects.
         """
-        logger.debug("JobCache.refresh_jobs_with_state_changes(): Checking state change queue.")
+        logger.debug("JobCache.refresh_jobs_with_state_changes(): " \
+                     "Checking state change queue.")
         changed_jobs = JobStateBackend.pop_state_changes_from_queue(10)
 
         if changed_jobs:
@@ -111,14 +148,21 @@ class JobCache(dict):
                         job.job_state,
                     ))
                     cls.update_job(job)
+        return changed_jobs
 
     @classmethod
     def abandon_stale_jobs(cls):
         """
-        On rare occasions, nommers crash so hard that no ERROR state change is
-        made, and the job just gets stuck in a permanent unfinished state
-        (DOWNLOADING, ENCODING, UPLOADING, etc). Rather than hang on to these
-        indefinitely, abandon them.
+        On rare occasions, nommers crash so hard that no ``ERROR`` state change 
+        is made, and the job just gets stuck in a permanent unfinished state
+        (``DOWNLOADING``, ``ENCODING``, ``UPLOADING``, etc). Rather than hang 
+        on to these indefinitely, abandon them by setting their state to
+        ``ABANDONED``.
+        
+        The threshold for which jobs are considered abandoned is configurable
+        via the
+        :py:data:`FEEDERD_ABANDON_INACTIVE_JOBS_THRESH <media_nommer.conf.settings.FEEDERD_ABANDON_INACTIVE_JOBS_THRESH>`
+        setting.
         """
         for id, job in cls.get_cached_jobs().items():
             if not job.is_finished():

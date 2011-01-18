@@ -2,6 +2,10 @@
 This module contains tasks that are executed at intervals, and is imported at
 the time the server is started. The intervals at which the tasks run
 are configurable via :py:mod:`media_nommer.conf.settings`.
+
+All functions prefixed with ``task_`` are task functions that are registered
+with the Twisted_ reactor. All functions prefixed with ``threaded_`` are
+the interesting bits that actually do things.
 """
 from twisted.internet import task, reactor
 from media_nommer.conf import settings
@@ -29,6 +33,8 @@ def task_check_for_new_jobs():
     determined by the 
     :py:data:`NOMMERD_NEW_JOB_CHECK_INTERVAL <media_nommer.conf.settings.NOMMERD_NEW_JOB_CHECK_INTERVAL>`
     setting.
+    
+    Calls :py:func:`threaded_encode_job` for any jobs to encode.
     """
     num_active_threads = NodeStateManager.get_num_active_threads()
     max_threads = settings.MAX_ENCODING_JOBS_PER_EC2_INSTANCE
@@ -72,6 +78,8 @@ def task_heartbeat():
     """
     Checks in with feederd in a non-blocking manner via 
     :py:meth:`threaded_heartbeat`.
+    
+    Calls :py:func:`threaded_heartbeat`.
     """
     reactor.callInThread(threaded_heartbeat)
 
