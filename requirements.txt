@@ -2,3 +2,4 @@ boto
 twisted
 txrestapi
 simplejson
+sphinx

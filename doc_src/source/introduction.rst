@@ -5,65 +5,68 @@
 An Introduction to media-nommer
 ===============================
 
-media-nommer is a Python project that aims to provide media encoding that
-scales to your needs in the cloud (`Amazon AWS`_, to be specific). This is not
-altogether special, and is a problem that has been solved by a good number of
-other efforts. However, we take a unique stance in that we provide a number
-of different encoding backends for different services and providers, without
-your having to deal with their respective APIs directly.
+media-nommer is a Python_-based, distributed media encoding system. It aims to
+implement much of the same services offered by commercial encoding services.
+The primary advantage afforded by media-nommer is that one only pays for what
+they use on `Amazon AWS`_, with no additional price mark-up. It may also be
+completely customized to meet your needs.
 
 Some Background
 ---------------
 
-As mentioned earlier, there are any number of various projects out there that
-handle encoding media on various services. We (`DUO Interactive`_) were searching 
-for a suitable fit for two different projects that needed near-infinite media
-encoding scalability. However, the two projects were completely different in 
-the way that the media files would be delivered and tracked, as well as the
-formats to be encoded to. Furthermore, there were/are certain formats that some 
-services like Encoding.com handle much better/cheaper than our ideal of
-EC2_ + FFmpeg_.
+There are any number of encoding services around the web, some of which are
+cheap and very easy to use. We (`DUO Interactive`_) were searching 
+for a suitable fit for two different projects that an extreme amount of
+encoding scalability. However, the more we looked into it, the more we
+struggled with picking a service that had a good balance of affordability and
+permanence. We also were looking for a little more customizability in the
+encoding process.
 
-We needed a package that would let us send media directly to our encoding
-software, or grab it from S3 for encoding. Encoded output would need to be 
-stored on S3 for distribution via CloudFront_. We also wanted to go the
-cheapest route, which sometimes meant using a more specialized third party
-service. We wanted to be able to selectively pipe certain media out to said
-third parties, and send the rest to our default EC2_ + FFmpeg_ encoding
-plugin. And most importantly of all, we wanted the bulk of the setup work
-for a deployment of the software to be done in the config file, with the
-nasty stuff humming along out of sight.
+Many encoding services use software such as FFmpeg_, and encode media to codecs
+that they have not paid licensing fees for. If the service has any
+degree of success, it is only a matter of time before MPEG-LA and others come
+knocking to get their licensing fees. This often spells end-of-game for the
+smaller (often cheaper) services. On the other end of the spectrum, some
+100% legal services have to raise their prices up to cover the large licensing
+fees, putting it outside the realm of what we'd like to pay. A good read on
+this subject can be found on the `FFmpeg legal`_ page.
 
-The result of all of this was the creation of media-nommer, a Python_-based
-media encoding system with a penchant for scalability and flexibility.
+For those of us who don't need to encode to royalty-encumbered formats, a
+cheaper, more customizable, and more permanent solution was to just write our
+own. The result of all of this was the creation of media-nommer, a 
+Python_-based media encoding system with scalability and flexibility in mind.
+
+.. _`FFmpeg legal`: http://ffmpeg.org/legal.html
 
 A high level overview
 ---------------------
 
-Intelligent distributed encoding requires a director or orchestrator to keep
-everything running as it should. Since we've targeted near-infinite scalability
-as a goal, we need to be able to hand out media to external services, as well
-as scale our own EC2_ + FFmpeg_ instances up and down to meet demand. This is
-where the :doc:`feederd` daemon comes in.
+media-nommer is comprised of two primary componenets, :doc:`feederd` and
+:doc:`ec2nommerd`.
 
-The :doc:`feederd` manages the various *Nommers*, which are classes that manage 
-the encoding service they abstract. For example, we have 
-:py:class:`EC2FFmpegNommer <media_nommer.nommers.ec2_ffmpeg.nommer.EC2FFmpegNommer>`, 
-as well as an EncodingDotComNommer. Each of these has methods that lets feederd
-submit encoding jobs, receive notification of their success/failure, and
-deal with the output.
+feederd
+^^^^^^^
 
-:doc:`feederd` also implements a simple JSON-based API for your custom software 
-to query for pending or current encoding job states. 
+Distributed encoding requires a director or orchestrator to keep
+everything running as it should. This is where the :doc:`feederd` daemon 
+comes into play. Here are some of the things it does:
 
-And finally, upon completion of an encoding job, you may optionally have
-:doc:`feederd` ping you back at a specified URL.
-
-That's a lot of feederd
------------------------
-
-You'll notice that we mention :doc:`feederd` pretty frequently. We could have 
-done without this guy if we went with a de-centralized EC2_ + FFmpeg_ setup, but
-then we lose a lot of ability to blend `Amazon AWS`_-based encoding with
-external encoding.
+* Manages your EC2_ instances (which have the :doc:`ec2nommerd` daemon
+  running on them), and intelligently spins up more instances 
+  according to your configuration and work load.
+* Keeps track of the status of your encoding jobs, present and past.
+* Exposes a simple JSON-based API that can be used to schedule jobs, and
+  check on the status of those that are currently running or completed.
   
+:doc:`feederd` may be ran on your current infrastructure, or on EC2_. Your
+EC2_ nodes are never in direct contact with :doc:`feederd`, and instead
+communicate through `Amazon AWS`_.
+
+ec2nommerd
+^^^^^^^^^^
+  
+Where :doc:`feederd` is the manager, :doc:`ec2nommerd` is the worker. Your
+basic unit of work is an EC2_ instance that runs :doc:`ec2nommerd`. This
+daemon simple checks a SQS_ queue for jobs that need to be encoded, and does
+so until the queue is empty. After a period of inactivity, your EC2_ instances
+will terminate themselves, saving you money.

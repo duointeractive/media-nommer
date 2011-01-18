@@ -43,17 +43,25 @@ Installing additional dependencies
 There are a few additional dependencies to install when doing development
 work. Since everyone is being good little programmers and working under
 virtualenv_, it's just a matter of switching to said virtual environment and
-doing::
+doing this from within your ``media-nommer`` dir::
 
-    pip install nose sphinx
+    pip install -r requirements.txt
     
-Now you're set to run unit tests and build our documentation.
+Now you're set to develop, run unit tests, and build our documentation.
+
+Configuration
+-------------
+
+You will now want to review the :ref:`installing_configuring` section of 
+:doc:`installation` document. You may create your :file:`nomconf.py` in your
+``media-nommer`` directory for convenience. Return to this document once
+you have finished following the configuration instructions.
 
 Running and writing unit tests
 ------------------------------
 
-Running unit tests is trivial with nose_. `cd` to your media-nommer directory
-and just run::
+Running unit tests is trivial with nose_. :command:`cd` to your ``media-nommer`` 
+directory and just run::
 
     nose
     
@@ -80,13 +88,42 @@ Look through these for a good idea of what we're looking for.
     is understood that writing unit tests is boring, tedious, and un-fun, but
     it is a necessary evil for complex software.
     
+Running feederd locally
+-----------------------
+
+.. note::
+    This is suitable for local testing and development, your actual deployment
+    would probably omit the ``-n`` flag to allow daemonization, unless you're
+    using something like Supervisor_.
+
+If you are in your ``media-nommer`` directory, you may run :doc:`feederd`
+locally by doing this::
+    
+    PYTHONPATH=media_nommer twistd -n --pidfile=feederd.pid feederd
+    
+Running ec2nommerd locally
+--------------------------
+
+:doc:`ec2nommerd` is designed to run on your EC2_ instances, and is not at all
+meant to run on anything else. While it will do so just fine in most cases,
+a few features (such as self-termination) obviously won't work.
+
+If you are in your ``media-nommer`` directory, you may run :doc:`ec2nommerd`
+locally by doing this::
+    
+    PYTHONPATH=media_nommer twistd -n --pidfile=ec2nommerd.pid ec2nommerd -l
+    
+.. warning::
+    Make **sure** to include the `-l` flag or your daemon will just deadlock
+    while trying to query a web server that is internal to AWS_.
+    
 Code style
 ----------
 
 We mostly adhere to PEP8_, and expect contributors to do the same. A few quick
 hi-lights:
 
-* 80 columns width max, unless absolutely necessary.
+* 80 columns width max when possible.
 * Indents are 4 spaces, and not tabs. **No tabs allowed**.
 * Avoid wildcard * imports unless absolutely necessary.
 * No camelCase method names, use underscores and lowercase letters. 

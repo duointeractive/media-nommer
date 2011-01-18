@@ -11,8 +11,8 @@ issue please let us know on our `issue tracker`_.
 
 .. note:: 
     The following instructions are directed at what your eventual production
-    environment will need. Developers setting up a dev environment can omit
-    anything that they don't need (like daemonizing and process monitoring).
+    environment will need. See :doc:`hacking` for details on setting up
+    a development environment.
 
 Assumptions
 -----------
@@ -35,10 +35,75 @@ Requirements
 * Some flavor of Linux, Unix, BSD, Mac OS, or POSIX compliant OS.
 * Python_ 2.5 or higher, Python_ 2.6 or 2.7 recommended. Python_ 3.x is not 
   supported (yet).
-* Twisted_ 10.x. We develop on 10.2.
-* Boto_ 2.0 or higher.
 
-The easiest way to satisfy these is to create your virtualenv_, switch to
-it, and run the following::
+Installing
+----------
 
-    pip install twisted boto
+For the sake of clarity, the media-nommer Python package on PyPi contains
+the sources for :doc:`feederd` and :doc:`ec2nommerd`. You will want to install
+this package on whatever machine you'd like to run :doc:`feederd` on. You do
+not need to do any setup work for :doc:`ec2nommerd`, as those are ran on an
+EC2_ instance that is based off of an AMI that we have created for you.
+
+The easiest way is to install the package is through :command:`pip` or
+:command:`easy_install`::
+
+    pip install media-nommer
+    
+.. note::
+    This will only work once we start distributing media-nommer on PyPi. For
+    now, you'll need to download a tarball/zip, or check the source out from
+    our `GitHub project`_ and install via the enclosed ``setup.py``. See the
+    ``requirements.txt`` within the project for dependencies.
+    
+You will then need to visit `Amazon AWS`_ and sign up for the following
+services:
+
+* SimpleDB_
+* SQS_
+* EC2_
+
+Fees are based on what you actually use, so signing up for these services will
+incur no costs unless you use them.
+
+You will then want to create a ``media_nommer`` *Security Group* through the 
+AWS_ management console for your EC2_ instances to be part of. You will also
+need to create an SSH key pair. Make sure to keep track of the name of your
+key pair, as you will need that in the configuration stage.
+    
+.. _installing_configuring:
+    
+Configuring
+-----------
+
+Once media-nommer is installed, create a directory to store a few files in.
+Within said directory, create a file called :file:`nomconf.py`. You will
+want to add these settings values (at minimum):
+
+.. code-block:: python
+    
+    # The AWS SSH key pair to use for creating instances. This is just the
+    # name of it, as per your Account Security Credentials panel on AWS.
+    EC2_KEY_NAME = 'xxxxxxxxx'
+    # The AWS credentials used to access SimpleDB, SQS, and EC2.
+    AWS_ACCESS_KEY_ID = 'YYYYYYYYYYYYYYYYYYYY'
+    AWS_SECRET_ACCESS_KEY = 'ZZZZZZZZZZZZZZZZZZZZZZZZZZZZZ'
+    
+See :py:mod:`media_nommer.conf.settings` for a full list of settings (and their
+defaults) that you may override in your :file:`nomconf.py`. 
+
+Starting feederd
+----------------
+
+You will now want to start :doc:`feederd` using whatever init script or
+init daemon you use. We have had good results with Supervisor_, but you can
+use whatever you're comfortable with. Make sure that the server running
+:doc:`feederd` is reachable by the machines that will be sending API requests
+to start encoding jobs.
+
+Using
+-----
+
+From here, you'll want to select and start using a :ref:`client_api_libraries`.
+These are what communicate with :doc:`feederd`'s RESTful web API, and ultimately
+help get stuff done.
