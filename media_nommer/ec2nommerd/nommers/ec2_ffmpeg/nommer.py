@@ -5,7 +5,7 @@ conjunction with the ec2nommerd Twisted_ plugin.
 import tempfile
 import subprocess
 from media_nommer.utils import logger
-from media_nommer.core.nommers.base_nommer import BaseNommer
+from media_nommer.ec2nommerd.nommers.base_nommer import BaseNommer
 
 class EC2FFmpegNommer(BaseNommer):
     """
@@ -29,7 +29,7 @@ class EC2FFmpegNommer(BaseNommer):
         # Upload the encoding output file to its final destination.
         self.upload_to_destination(out_fobj)
 
-        self.job.set_job_state('FINISHED')
+        self.wrapped_set_job_state('FINISHED')
         logger.info("EC2FFmpegNommer: Job %s has been successfully encoded." % self.job.unique_id)
         fobj.close()
         out_fobj.close()
@@ -93,5 +93,5 @@ class EC2FFmpegNommer(BaseNommer):
             logger.error(message_or_obj="Error encountered while running ffmpeg.")
             logger.error(message_or_obj=cmd_output[0])
             logger.error(message_or_obj=cmd_output[1])
-            self.job.set_job_state('ERROR', details=cmd_output[1])
+            self.wrapped_set_job_state('ERROR', details=cmd_output[1])
             return None

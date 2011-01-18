@@ -92,17 +92,6 @@ class EncodingJob(object):
                                   random_salt)
         return hashlib.sha512(combo_str).hexdigest()[:50]
 
-    def _send_state_change_notification(self):
-        """
-        Send a message to a state change SQS that lets feederd know to
-        re-load the job from memory.
-        """
-        logger.debug("EncodingJob._send_state_change_notification(): " \
-                     "Sending job state change for %s" % self.unique_id)
-        sqs_message = Message()
-        sqs_message.set_body(self.unique_id)
-        JobStateBackend._get_sqs_state_change_queue().write(sqs_message)
-
     def save(self):
         """
         Given an EncodingJob, save it to SimpleDB and SQS. 
@@ -159,12 +148,27 @@ class EncodingJob(object):
 
         return job['unique_id']
 
+    def _send_state_change_notification(self):
+        """
+        Send a message to a state change SQS that lets feederd know to
+        re-load the job from memory.
+        """
+        logger.debug("EncodingJob._send_state_change_notification(): " \
+                     "Sending job state change for %s" % self.unique_id)
+        sqs_message = Message()
+        sqs_message.set_body(self.unique_id)
+        JobStateBackend._get_sqs_state_change_queue().write(sqs_message)
+
     def set_job_state(self, job_state, details=None):
         """
         Sets the job's state and saves it to the backend.
         """
         if job_state not in JobStateBackend.JOB_STATES:
             raise Exception('Invalid job state: % s' % job_state)
+
+        logger.debug("EncodingJob.set_job_state(): " \
+                     "Setting job state on %s to %s" % (
+                        self.unique_id, job_state))
 
         self.job_state = job_state
         self.job_state_details = details

@@ -12,6 +12,8 @@ def threaded_encode_job(job):
     """
     Given a job, run it through its encoding workflow in a non-blocking manner.
     """
+    # Update the timestamp for when the node last did something so it
+    # won't terminate itself.
     NodeStateManager.i_did_something()
     job.nommer.onomnom()
 
@@ -21,15 +23,17 @@ def task_check_for_new_jobs():
     the MAX_ENCODING_JOBS_PER_EC2_INSTANCE setting. If we are under the max,
     fire up another thread for encoding additional job(s). 
     """
-    num_active_threads = len(reactor.getThreadPool().working)
+    num_active_threads = NodeStateManager.get_num_active_threads()
     max_threads = settings.MAX_ENCODING_JOBS_PER_EC2_INSTANCE
-    if num_active_threads < max_threads:
+    num_jobs_to_pop = max(0, max_threads - num_active_threads)
+
+    if num_jobs_to_pop > 0:
         # We have more room for encoding threads, determine how many.
-        num_msgs_to_get = max(0, max_threads - num_active_threads)
-        logger.debug("task_check_for_new_jobs: Job check tic. Accepting as many as %d jobs." % num_msgs_to_get)
+        logger.debug("task_check_for_new_jobs: " \
+                     "Popping up to %d new jobs." % num_jobs_to_pop)
         # This is an iterable of BaseEncodingJob sub-classed instances for
         # each job returned from the queue.
-        jobs = JobStateBackend.pop_new_jobs_from_queue(num_msgs_to_get)
+        jobs = JobStateBackend.pop_new_jobs_from_queue(num_jobs_to_pop)
         if jobs:
             logger.debug("* Popped %d jobs from the queue." % len(jobs))
 
@@ -45,7 +49,8 @@ def threaded_heartbeat():
     Send some basic state data to a SimpleDB domain, for feederd to see.
     """
     if settings.NOMMERD_TERMINATE_WHEN_IDLE:
-        is_terminated = NodeStateManager.contemplate_termination()
+        # thread_count_mod factors out this thread when counting active threads.
+        is_terminated = NodeStateManager.contemplate_termination(thread_count_mod= -1)
     else:
         is_terminated = False
 

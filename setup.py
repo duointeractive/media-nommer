@@ -34,7 +34,7 @@ setup(
     packages=[
         'media_nommer', 'media_nommer.conf',
         'media_nommer.core',
-        'media_nommer.core.nommers', 'media_nommer.core.nommers.ec2_ffmpeg',
+        'media_nommer.ec2nommerd.nommers', 'media_nommer.ec2nommerd.nommers.ec2_ffmpeg',
         'media_nommer.core.storage_backends',
         'media_nommer.ec2nommerd', 'media_nommer.ec2nommerd.web',
         'media_nommer.feederd', 'media_nommer.feederd.web',

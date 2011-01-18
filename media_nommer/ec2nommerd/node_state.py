@@ -13,15 +13,13 @@ class NodeStateManager(object):
     """
     Tracks this node's state, reports it to feederd, and terminates itself
     if certain conditions of inactivity are met.
-    
-    TODO: Make these method names consistent with the JobStateBackend.
     """
     last_dtime_i_did_something = datetime.datetime.now()
 
     # Used for lazy-loading the SDB connection. Do not refer to directly.
     __aws_sdb_connection = None
     # Used for lazy-loading the SDB domain. Do not refer to directly.
-    __aws_sdb_domain = None
+    __aws_sdb_nommer_state_domain = None
     # Used for lazy-loading the EC2 connection. Do not refer to directly.
     __aws_ec2_connection = None
     # Store the instance ID for this EC2 node (if not local).
@@ -56,17 +54,17 @@ class NodeStateManager(object):
         return cls.__aws_sdb_connection
 
     @classmethod
-    def _aws_sdb_domain(cls):
+    def _aws_sdb_nommer_state_domain(cls):
         """
         Lazy-loading of the SimpleDB boto domain. Refer to this instead of
-        referencing cls.__aws_sdb_domain directly.
+        referencing cls.__aws_sdb_nommer_state_domain directly.
 
         :returns: A boto SimpleDB domain for this workflow.
         """
-        if not cls.__aws_sdb_domain:
-            cls.__aws_sdb_domain = cls._aws_sdb_connection().create_domain(
+        if not cls.__aws_sdb_nommer_state_domain:
+            cls.__aws_sdb_nommer_state_domain = cls._aws_sdb_connection().create_domain(
                                     settings.SIMPLEDB_EC2_NOMMER_STATE_DOMAIN)
-        return cls.__aws_sdb_domain
+        return cls.__aws_sdb_nommer_state_domain
 
     @classmethod
     def get_instance_id(cls, is_local=False):
@@ -101,7 +99,7 @@ class NodeStateManager(object):
         return cls.get_instance_id() != 'local-dev'
 
     @classmethod
-    def send_instance_state_update(cls):
+    def send_instance_state_update(cls, state='ACTIVE'):
         """
         Sends a status update to feederd through SimpleDB. Lets the daemon
         know how many jobs this instance is crunching right now. Also updates
@@ -110,19 +108,18 @@ class NodeStateManager(object):
         """
         if cls.is_ec2_instance():
             instance_id = cls.get_instance_id()
-            item = cls._aws_sdb_domain().new_item(instance_id)
+            item = cls._aws_sdb_nommer_state_domain().new_item(instance_id)
             item['id'] = instance_id
-            item['active_jobs'] = len(reactor.getThreadPool().working) - 1
+            item['active_jobs'] = cls.get_num_active_threads() - 1
             item['last_report_dtime'] = datetime.datetime.now()
+            item['state'] = state
             item.save()
 
     @classmethod
-    def contemplate_termination(cls):
+    def contemplate_termination(cls, thread_count_mod=0):
         """
         Looks at how long it's been since this worker has done something, and
         decides whether to self-terminate.
-        
-        TODO: State update on termination?
         
         :rtype: bool
         :returns: ``True`` if this instance terminated itself, ``False``
@@ -130,6 +127,15 @@ class NodeStateManager(object):
         """
         if not cls.is_ec2_instance():
             # Developing locally, don't go here.
+            return False
+
+        # This is -1 since this is also a thread doing the contemplation.
+        # This would always be 1, even if we had no jobs encoding, if we
+        # didn't take into account this thread.
+        num_active_threads = cls.get_num_active_threads() + thread_count_mod
+
+        if num_active_threads > 0:
+            # Encoding right now, don't terminate.
             return False
 
         tdelt = datetime.datetime.now() - cls.last_dtime_i_did_something
@@ -148,11 +154,23 @@ class NodeStateManager(object):
                 for instance in reservation.instances:
                     # Here's the instance, terminate it.
                     logger.info("Goodbye, cruel world.")
+                    cls.send_instance_state_update(state='TERMINATED')
                     instance.terminate()
             # Seeya later!
             return True
         # Continue existence, no termination.
         return False
+
+    @classmethod
+    def get_num_active_threads(cls):
+        """
+        Checks the reactor's threadpool to see how many threads are currently
+        working. This can be used to determine how busy this node is.
+        
+        :rtype: int
+        :returns: The number of active threads.
+        """
+        return len(reactor.getThreadPool().working)
 
     @classmethod
     def i_did_something(cls):
