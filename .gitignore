@@ -12,3 +12,4 @@ MANIFEST
 dropin.cache
 nomconf.py
 *.pid
+.DS_Store
