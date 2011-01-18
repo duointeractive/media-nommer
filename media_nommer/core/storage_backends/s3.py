@@ -17,6 +17,10 @@ class S3Backend(object):
         Lazy-loading of the S3 boto connection. Refer to this instead of
         referencing self._aws_s3_connection directly.
         
+        :param str access_key: The AWS_ Access Key needed to get to the
+            file in question.
+        :param str secret_access_key: The AWS_ Secret Access Key needed to get 
+            to the file in question.
         :rtype: :py:class:`boto.s3.connection.Connection`
         :returns: A boto connection to Amazon's S3 interface.
         """
@@ -27,6 +31,8 @@ class S3Backend(object):
         """
         Given a URI, download the file to the given file-like object.
         
+        :param str uri: The URI of a file to download.
+        :param file fobj: A file-like object to download the file to.
         :rtype: file
         :returns: A file handle to the downloaded file.
         """

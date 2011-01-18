@@ -2,25 +2,25 @@
 
 .. include:: ../global.txt
 
-==============================
+=================
 media_nommer.conf
-==============================
+=================
 
 .. automodule:: media_nommer.conf
    :members:   
    :undoc-members:
 
---------------------------
-media_nommer.conf.settings
---------------------------
+--------
+settings
+--------
 
 .. automodule:: media_nommer.conf.settings
    :members:   
    :undoc-members:
 
------------------------
-media_nommer.conf.utils
------------------------
+-----
+utils
+-----
    
 .. automodule:: media_nommer.conf.utils
    :members:   

@@ -10,17 +10,24 @@ media_nommer.core
    :members:   
    :undoc-members:
 
-----------------------------------
-media_nommer.core.storage_backends
-----------------------------------
+----------------
+storage_backends
+----------------
 
 .. automodule:: media_nommer.core.storage_backends
    :members:   
    :undoc-members:
+   
+s3
+^^
 
------------------------------------
-media_nommer.core.job_state_backend
------------------------------------
+.. automodule:: media_nommer.core.storage_backends.s3
+   :members:   
+   :undoc-members:
+
+-----------------
+job_state_backend
+-----------------
    
 .. automodule:: media_nommer.core.job_state_backend
    :members:   
