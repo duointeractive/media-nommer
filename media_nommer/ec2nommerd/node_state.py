@@ -1,5 +1,6 @@
 """
-Some methods for tracking and reporting the state of the ec2nommerd.
+Contains the :py:class:`NodeStateManager` class, which is an abstraction layer
+for storing and communicating the status of EC2_ nodes.
 """
 import urllib2
 import datetime
@@ -11,8 +12,8 @@ from media_nommer.utils.compat import total_seconds
 
 class NodeStateManager(object):
     """
-    Tracks this node's state, reports it to feederd, and terminates itself
-    if certain conditions of inactivity are met.
+    Tracks this node's state, reports it to :doc:`../feederd`, and terminates 
+    itself if certain conditions of inactivity are met.
     """
     last_dtime_i_did_something = datetime.datetime.now()
 
@@ -105,6 +106,9 @@ class NodeStateManager(object):
         know how many jobs this instance is crunching right now. Also updates
         a timestamp field to let feederd know how long it has been since the
         instance's last check-in.
+        
+        :keyword str state: If this EC2_ instance is anything but ``ACTIVE``,
+            pass the state here. This is useful during node termination.
         """
         if cls.is_ec2_instance():
             instance_id = cls.get_instance_id()
@@ -121,6 +125,9 @@ class NodeStateManager(object):
         Looks at how long it's been since this worker has done something, and
         decides whether to self-terminate.
         
+        :param int thread_count_mod: Add this to the amount returned by the call
+            to :py:meth:`get_num_active_threads`. This is useful when calling
+            this method from a non-encoder thread.
         :rtype: bool
         :returns: ``True`` if this instance terminated itself, ``False``
             if not.

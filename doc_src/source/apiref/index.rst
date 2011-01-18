@@ -9,3 +9,4 @@ API Reference
 
    conf
    core
+   ec2nommerd

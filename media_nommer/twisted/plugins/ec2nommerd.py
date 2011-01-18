@@ -105,6 +105,7 @@ class WebApiServiceMaker(object):
         NodeStateManager.get_instance_id(is_local=is_local)
 
         from media_nommer.ec2nommerd import interval_tasks
+        interval_tasks.register_tasks()
 
 # Now construct an object which *provides* the relevant interfaces
 # The name of this variable is irrelevant, as long as there is *some*

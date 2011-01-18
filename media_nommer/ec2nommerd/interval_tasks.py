@@ -1,6 +1,7 @@
 """
 This module contains tasks that are executed at intervals, and is imported at
-the time the server is started.
+the time the server is started. The intervals at which the tasks run
+are configurable via :py:mod:`media_nommer.conf.settings`.
 """
 from twisted.internet import task, reactor
 from media_nommer.conf import settings
@@ -19,9 +20,15 @@ def threaded_encode_job(job):
 
 def task_check_for_new_jobs():
     """
-    Looks at the number of currently active threads and compares it against
-    the MAX_ENCODING_JOBS_PER_EC2_INSTANCE setting. If we are under the max,
-    fire up another thread for encoding additional job(s). 
+    Looks at the number of currently active threads and compares it against the 
+    :py:data:`MAX_ENCODING_JOBS_PER_EC2_INSTANCE <media_nommer.conf.settings.MAX_ENCODING_JOBS_PER_EC2_INSTANCE>` 
+    setting. If we are under the max, fire up another thread for encoding 
+    additional job(s). 
+    
+    The interval at which :doc:`../ec2nommerd` checks for new jobs is 
+    determined by the 
+    :py:data:`NOMMERD_NEW_JOB_CHECK_INTERVAL <media_nommer.conf.settings.NOMMERD_NEW_JOB_CHECK_INTERVAL>`
+    setting.
     """
     num_active_threads = NodeStateManager.get_num_active_threads()
     max_threads = settings.MAX_ENCODING_JOBS_PER_EC2_INSTANCE
@@ -41,12 +48,16 @@ def task_check_for_new_jobs():
             # For each job returned, render in another thread.
             logger.debug("* Starting encoder thread for job: %s" % job.unique_id)
             reactor.callInThread(threaded_encode_job, job)
-task.LoopingCall(task_check_for_new_jobs).start(
-    settings.NOMMERD_NEW_JOB_CHECK_INTERVAL, now=True)
 
 def threaded_heartbeat():
     """
-    Send some basic state data to a SimpleDB domain, for feederd to see.
+    Fires off a threaded task to check in with feederd via SimpleDB_. There
+    is a domain that contains all of the running EC2_ instances and their
+    unique IDs, along with some state data.
+    
+    The interval at which heartbeats occur is determined by the
+    :py:data:`NOMMERD_HEARTBEAT_INTERVAL <media_nommer.conf.settings.NOMMERD_HEARTBEAT_INTERVAL` 
+    setting.
     """
     if settings.NOMMERD_TERMINATE_WHEN_IDLE:
         # thread_count_mod factors out this thread when counting active threads.
@@ -59,10 +70,17 @@ def threaded_heartbeat():
 
 def task_heartbeat():
     """
-    Fires off a threaded task to check in with feederd via SimpleDB. There
-    is a domain that contains all of the running EC2 instances and their
-    unique IDs, along with some state data.
+    Checks in with feederd in a non-blocking manner via 
+    :py:meth:`threaded_heartbeat`.
     """
     reactor.callInThread(threaded_heartbeat)
-task.LoopingCall(task_heartbeat).start(
-    settings.NOMMERD_HEARTBEAT_INTERVAL, now=False)
+
+def register_tasks():
+    """
+    Registers all tasks. Called by the :doc:`../ec2nommerd` Twisted_ plugin.
+    """
+    task.LoopingCall(task_check_for_new_jobs).start(
+                                        settings.NOMMERD_NEW_JOB_CHECK_INTERVAL,
+                                        now=True)
+    task.LoopingCall(task_heartbeat).start(settings.NOMMERD_HEARTBEAT_INTERVAL,
+                                           now=False)
