@@ -1,8 +1,8 @@
 """
-The job state backend provides a simple API for feederd_ and ec2nommerd_ to
-store and retrieve job state information. This can be everything from the
-list of currently un-finished jobs, to the down-to-the-minute status of
-individual jobs.
+The job state backend provides a simple API for :doc:`../feederd` and 
+:doc:`../ec2nommerd` to store and retrieve job state information. This can be 
+everything from the list of currently un-finished jobs, to the 
+down-to-the-minute status of individual jobs.
 
 There are two pieces to the job state backend:
 
@@ -24,14 +24,36 @@ from media_nommer.utils.mod_importing import import_class_from_module_string
 
 class EncodingJob(object):
     """
-    Serves as a base for encoding jobs on all backends.
+    Represents a single encoding job. This class handles the serialization
+    and de-serialization involved when saving and loading encoding jobs
+    to and from SimpleDB_.
+    
+    .. tip:: You generally won't be instantiating these objects yourself.
+        To retrieve an existing job, you may use
+        :py:meth:`JobStateBackend.get_job_object_from_id`. 
     """
     def __init__(self, source_path, dest_path, nommer, job_options,
                  unique_id=None, job_state='PENDING', job_state_details=None,
                  notify_url=None, creation_dtime=None,
                  last_modified_dtime=None):
         """
-        Document me.
+        :param str source_path: The URI to the source media to encode.
+        :param str dest_path: The URI to upload the encoded media to.
+        :param dict job_options: The job options to pass to the Nommer in
+            key/value format. See each Nommer's documentation for details on
+            accepted options.
+        :keyword str unique_id: The unique hash ID for this job. If
+            :py:meth:`save` is called and this value is ``None``, an ID will
+            be generated for this job.
+        :keyword str job_state: The state that the job is in.
+        :keyword str job_state_details: Any details to go along with whatever
+            job state this job is in. For example, if job_state is `ERROR`,
+            this keyword might contain an error message.
+        :keyword str notify_url: The URL to hit when this job has finished.
+        :keyword datetime.datetime creation_dtime: The time when this job
+            was created.
+        :keyword datetime.datetime last_modified_dtime: The time when this job
+            was last modified.
         """
         self.source_path = source_path
         self.dest_path = dest_path
@@ -71,8 +93,12 @@ class EncodingJob(object):
 
     def _get_dtime_from_string(self, dtime):
         """
-        If dtime is a string, try to parse and instantiate a date from it.
+        If ``dtime`` is a string, try to parse and instantiate a date from it.
         If it's something else, just return the value without messing with it.
+        
+        :param str or datetime.datetime: The string in 
+            ``repr(datetime.datetime)`` format to parse. Or a 
+            :py:class:`datetime.datetime` object.
         """
         if isinstance(dtime, basestring):
             return datetime.datetime.strptime(dtime, '%Y-%m-%d %H:%M:%S.%f')
@@ -84,6 +110,9 @@ class EncodingJob(object):
         Since SimpleDB has no notion of primary keys or auto-incrementing
         fields, we have to create our own. Generate a unique ID for the job
         based on a bunch of values and a random salt.
+        
+        :rtype: str
+        :returns: A "unique" hash for the job, based on its contents.
         """
         random_salt = random.random()
         combo_str = "%s%s%s%s" % (self.source_path,
@@ -94,7 +123,12 @@ class EncodingJob(object):
 
     def save(self):
         """
-        Given an EncodingJob, save it to SimpleDB and SQS. 
+        Serializes and saves the job to SimpleDB_. In the case of a newly
+        instantiated job, also handles queueing the job up into the new job
+        queue.
+        
+        :rtype: str
+        :returns: The unique ID of the job.
         """
         # Is this a new job that needs creation?
         is_new_job = not self.unique_id
@@ -161,7 +195,14 @@ class EncodingJob(object):
 
     def set_job_state(self, job_state, details=None):
         """
-        Sets the job's state and saves it to the backend.
+        Sets the job's state and saves it to the backend. Sends a notification
+        to :doc:`../feederd` to re-load the job's data from SimpleDB_ via
+        SQS_.
+        
+        :param str job_state: The state to set the job to.
+        :keyword str job_state_details: Any details to go along with whatever
+            job state this job is in. For example, if job_state is `ERROR`,
+            this keyword might contain an error message.
         """
         if job_state not in JobStateBackend.JOB_STATES:
             raise Exception('Invalid job state: % s' % job_state)
@@ -181,20 +222,26 @@ class EncodingJob(object):
     def is_finished(self):
         """
         Returns True if this job is in a finished state.
+        
+        :rtype: bool
+        :returns: ``True`` if the job is in a finished state, or 
+            ``False`` if not.
         """
         return self.job_state in JobStateBackend.FINISHED_STATES
 
 class JobStateBackend(object):
     """
-    This is a base class that can be sub-classed by each backend to serve
-    as a foundation. Required methods raise a NotImplementedError exception
-    by default, unless overridden by child classes.
+    Abstracts storing and retrieving job state information to and from
+    SimpleDB_. Jobs are represented through the :py:class:`EncodingJob` class,
+    which are instantiated and returned as needed.
     """
     JOB_STATES = ['PENDING', 'DOWNLOADING', 'ENCODING', 'UPLOADING',
                   'FINISHED', 'ERROR', 'ABANDONED']
-    # Any jobs in the following states are considered "finished" in that we
-    # won't do anything else with them.
+    """All possible job states as a list of strings."""
+
     FINISHED_STATES = ['FINISHED', 'ERROR', 'ABANDONED']
+    """Any jobs in the following states are considered "finished" in that we
+    won't do anything else with them. This is a list of strings."""
 
     # The following AWS fields are for lazy-loading.
     __aws_sdb_connection = None
@@ -206,9 +253,9 @@ class JobStateBackend(object):
     @classmethod
     def _get_sdb_connection(cls):
         """
-        Lazy-loading of the SimpleDB boto connection. Refer to this instead of
+        Lazy - loading of the SimpleDB boto connection. Refer to this instead of
         referencing cls.__aws_sdb_connection directly.
-        
+
         :returns: A boto connection to Amazon's SimpleDB interface.
         """
         if not cls.__aws_sdb_connection:
@@ -247,7 +294,7 @@ class JobStateBackend(object):
     @classmethod
     def _get_sqs_new_job_queue(cls):
         """
-        Lazy-loading of the SQS boto queue. Refer to this instead of
+        Lazy - loading of the SQS boto queue. Refer to this instead of
         referencing cls.__aws_sqs_new_job_queue directly.
 
         :returns: A boto SQS queue.
@@ -260,7 +307,7 @@ class JobStateBackend(object):
     @classmethod
     def _get_sqs_state_change_queue(cls):
         """
-        Lazy-loading of the SQS boto queue. Refer to this instead of
+        Lazy - loading of the SQS boto queue. Refer to this instead of
         referencing cls.__aws_sqs_state_change_queue directly.
 
         :returns: A boto SQS queue.
@@ -283,11 +330,15 @@ class JobStateBackend(object):
     def get_job_object_from_id(cls, unique_id):
         """
         Given a job's unique ID, return an EncodingJob instance.
+        
+        TODO: Make this raise a more specific exception.
+        
+        :param str unique_id: An :py:class:`EncodingJob`'s unique ID.
         """
         item = cls._get_sdb_job_state_domain().get_item(unique_id)
         if item is None:
             msg = 'JobStateBackend.get_job_object_from_id(): ' \
-                  'No unique ID match for: %s' % unique_id
+                  'No unique ID match for: % s' % unique_id
             raise Exception(msg)
 
         return cls._get_job_object_from_item(item)
@@ -320,11 +371,12 @@ class JobStateBackend(object):
         Queries SimpleDB for a list of pending jobs that have not yet been
         finished. 
         
-        :returns: A list of unfinished EncodingJob objects.
+        :rtype: list 
+        :returns: A list of unfinished :py:class:`EncodingJob` objects.
         """
-        query_str = "SELECT * FROM %s WHERE job_state != '%s' " \
-                    "and job_state != '%s' " \
-                    "and job_state != '%s'" % (
+        query_str = "SELECT * FROM %s WHERE job_state != ' % s' " \
+                    "and job_state != ' % s' " \
+                    "and job_state != ' % s'" % (
               settings.SIMPLEDB_JOB_STATE_DOMAIN,
               'FINISHED',
               'ERROR',
@@ -347,10 +399,25 @@ class JobStateBackend(object):
 
     @classmethod
     def _pop_jobs_from_queue(cls, queue, num_to_pop, visibility_timeout=30,
-                             delete_on_pop=True):
+                             delete_msg_on_pop=True):
         """
         Pops job objects from a queue whose entries have bodies that just
         contain job ID strings.
+        
+        .. warning:: 
+            Once jobs are popped from a queue and ``delete()`` is ran on the
+            message, they are gone for good. Be careful to handle errors in
+            the methods higher on the call stack that use this method. 
+        
+        :param boto.sqs.queue.Queue queue: The queue to pop jobs from.
+        :param int num_to_pop: The maximum number of jobs to pop at a time.
+            This can not be more than 10, as per SimpleDB_ limitations.
+        :param int visibility_timeout: The time (in seconds) that a job
+            will re-appear on the queue if ``delete()`` is not called on it.
+        :param bool delete_msg_on_pop: If ``True``, delete the message as soon
+            as the job is popped.
+        :rtype: list
+        :returns: A list of :py:class:`EncodingJob` objects.
         """
         if num_to_pop > 10:
             msg = 'SQS only allows up to 10 messages to be popped at a time.'
@@ -373,7 +440,7 @@ class JobStateBackend(object):
                 # job id in their bodies.
                 jobs[unique_id] = cls.get_job_object_from_id(unique_id)
 
-            if delete_on_pop:
+            if delete_msg_on_pop:
                 # Deleting a message makes it gone for good from SQS, instead
                 # of re-appearing after the timeout if we don't delete.
                 message.delete()
@@ -385,6 +452,16 @@ class JobStateBackend(object):
     def pop_new_jobs_from_queue(cls, num_to_pop):
         """
         Pops any new jobs from the job queue.
+        
+        .. warning:: 
+            Once jobs are popped from a queue and ``delete()`` is ran on the
+            message, they are gone for good. Be careful to handle errors in
+            the methods higher on the call stack that use this method.
+        
+        :param int num_to_pop: Pop up to this many jobs from the queue at once.
+            This can be up to 10, as per SimpleDB_ limitations.
+        :rtype: list
+        :returns: A list of :py:class:`EncodingJob` objects.
         """
         return cls._pop_jobs_from_queue(cls._get_sqs_new_job_queue(),
                                          num_to_pop,
@@ -394,6 +471,16 @@ class JobStateBackend(object):
     def pop_state_changes_from_queue(cls, num_to_pop):
         """
         Pops any recent state changes from the queue.
+
+        .. warning:: 
+            Once jobs are popped from a queue and ``delete()`` is ran on the
+            message, they are gone for good. Be careful to handle errors in
+            the methods higher on the call stack that use this method.
+
+        :param int num_to_pop: Pop up to this many jobs from the queue at once.
+            This can be up to 10, as per SimpleDB_ limitations.
+        :rtype: list
+        :returns: A list of :py:class:`EncodingJob` objects.
         """
         return cls._pop_jobs_from_queue(cls._get_sqs_state_change_queue(),
                                          num_to_pop,

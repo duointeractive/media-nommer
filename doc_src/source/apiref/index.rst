@@ -7,4 +7,5 @@ API Reference
 .. toctree::
    :maxdepth: 4
 
-   client
+   conf
+   core

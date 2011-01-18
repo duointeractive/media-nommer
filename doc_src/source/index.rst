@@ -40,6 +40,7 @@ Documentation
    introduction
    installation
    feederd
+   ec2nommerd
    hacking
    
 Reference

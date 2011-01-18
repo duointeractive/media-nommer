@@ -20,6 +20,7 @@
 .. _SimpleDB: http://aws.amazon.com/simpledb/
 .. _CloudFront: http://aws.amazon.com/cloudfront/
 .. _Amazon AWS: http://aws.amazon.com/
+.. _AWS: http://aws.amazon.com/
 
 .. _DUO Interactive: http://duointeractive.com
 .. _BSD License: http://opensource.org/licenses/bsd-license.php
