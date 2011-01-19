@@ -389,7 +389,14 @@ class JobStateBackend(object):
             try:
                 job = cls._get_job_object_from_item(item)
             except TypeError:
-                message = "JobStateBackend.get_unfinished_jobs(): Unable to instantiate job: %s" % item
+                message = "JobStateBackend.get_unfinished_jobs(): " \
+                          "Unable to instantiate job: %s" % item
+                logger.error(message_or_obj=message)
+                logger.error()
+                continue
+            except ImportError:
+                message = "JobStateBackend.get_unfinished_jobs(): " \
+                          "Invalid nommer specified for job: %s" % item
                 logger.error(message_or_obj=message)
                 logger.error()
                 continue

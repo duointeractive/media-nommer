@@ -77,7 +77,7 @@ class WebApiServiceMaker(object):
         """
         Uploads a copy of the settings to the bucket specified on
         settings.CONFIG_S3_BUCKET. This is used by the nommers that require
-        access to the config, like EC2FFmpegNommer.
+        access to the config, like FFmpegNommer.
         """
         upload_settings(self.user_settings)
 

@@ -12,7 +12,7 @@ def upload_settings(nomconf_module):
     Given a user-defined nomconf module (already imported), push said file
     to the S3 conf bucket, as defined by settings.CONFIG_S3_BUCKET. 
     This is used by the nommers that require access to the config, like 
-    EC2FFmpegNommer.
+    FFmpegNommer.
     
     :param module nomconf_module: The user's ``nomconf`` module. This may
         be called something other than ``nomconf``, but the uploaded filename 

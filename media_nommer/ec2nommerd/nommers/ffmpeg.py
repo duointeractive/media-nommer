@@ -7,7 +7,7 @@ import subprocess
 from media_nommer.utils import logger
 from media_nommer.ec2nommerd.nommers.base_nommer import BaseNommer
 
-class EC2FFmpegNommer(BaseNommer):
+class FFmpegNommer(BaseNommer):
     """
     A nommer that runs on EC2 instances, encoding media with FFmpeg_.
     """
@@ -30,7 +30,7 @@ class EC2FFmpegNommer(BaseNommer):
         self.upload_to_destination(out_fobj)
 
         self.wrapped_set_job_state('FINISHED')
-        logger.info("EC2FFmpegNommer: Job %s has been successfully encoded." % self.job.unique_id)
+        logger.info("FFmpegNommer: Job %s has been successfully encoded." % self.job.unique_id)
         fobj.close()
         out_fobj.close()
         return True
@@ -74,7 +74,7 @@ class EC2FFmpegNommer(BaseNommer):
 
         ffmpeg_cmd.append(out_fobj.name)
 
-        logger.debug("EC2FFmpegNommer.__run_ffmpeg(): Command to run: %s" % ffmpeg_cmd)
+        logger.debug("FFmpegNommer.__run_ffmpeg(): Command to run: %s" % ffmpeg_cmd)
 
         process = subprocess.Popen(ffmpeg_cmd,
                                    stdout=subprocess.PIPE,

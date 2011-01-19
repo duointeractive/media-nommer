@@ -171,4 +171,6 @@ used to work with said protocol."""
 PRESETS = ()
 """Default: ``()``
 
-A dict of workflow presets."""
+A dict of workflow presets. You must at least specify the Nommer class to
+use for each preset, but can go as far as specifying all encoding options,
+too."""

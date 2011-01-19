@@ -18,10 +18,17 @@ nommers
    :members:   
    :undoc-members:
    
-ec2_ffmpeg
+base_nommer
+^^^^^^^^^^^
+
+.. automodule:: media_nommer.ec2nommerd.nommers.base_nommer
+   :members:   
+   :undoc-members:
+   
+ffmpeg
 ^^^^^^^^^^
 
-.. automodule:: media_nommer.ec2nommerd.nommers.ec2_ffmpeg.nommer
+.. automodule:: media_nommer.ec2nommerd.nommers.ffmpeg
    :members:   
    :undoc-members:
 
