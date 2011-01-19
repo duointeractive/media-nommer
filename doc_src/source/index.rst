@@ -46,26 +46,19 @@ Documentation
    installation
    feederd
    ec2nommerd
+   jsonapi
+
+Development docs
+----------------
+
+The following topics will be useful to you if you would like to help improve
+media-nommer.
+
+.. toctree::
+   :maxdepth: 2
+
    hacking
    apiref/index
-   
-   
-.. _client_api_libraries: 
-
-Client API Libraries
---------------------
-
-The following API client libraries are for forming and sending JSON queries
-to media-nommer's RESTful API. This is important for sending and checking on
-encoding jobs. Your applications will use the API to make media-nommer do
-something (other than stare at you blankly).
-
-If you create a library of your own, let us know via the issue tracker and 
-we'll add yours to the list.
-
-* `media-nommer-api`_ (Python_)
-
-.. _`media-nommer-api`: https://github.com/duointeractive/media-nommer-api-python
 
 Indices and tables
 ==================

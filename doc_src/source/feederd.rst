@@ -48,6 +48,12 @@ Automated scaling is an optional feature, and can be configured and
 restricted in a number of different ways. For example, perhaps you don't want
 any more than one or two EC2_ instances running at any given time.
 
+JSON API
+--------
+
+To actually get jobs scheduled and work done, you will need to communicate
+with ``feederd`` through its :doc:`JSON API <jsonapi>`.
+
 Architectural notes
 -------------------
 
