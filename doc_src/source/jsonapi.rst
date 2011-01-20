@@ -35,4 +35,62 @@ we'll add yours to the list.
 API Call Reference
 ------------------
 
-We will go on to document the various API calls and their arguments here.
+All API calls consist of a JSON-formatted **POST** request sent to the 
+following URLs. Responses are also JSON-formatted.
+
+.. note:: You should send these calls to the host/port that your :doc:`feederd` 
+    is running on. This defaults to 8001, but may specify when you call the
+    :command:`twistd` command to start the daemon.
+
+/job/submit/
+^^^^^^^^^^^^
+
+This call submits a job for encoding. Here is an example call request body::
+
+    {
+        "source_path": "s3://AWS_ID:AWS_SECRET_KEY@BUCKET/KEYNAME.mp4",
+        "dest_path": "s3://AWS_ID:AWS_SECRET_KEY@OTHER_BUCKET/KEYNAME.mp4",
+        "preset": "movie_high_q",
+        "notify_url": "http://myapp.somewhere.com/encoding/job_done/",
+        "job_options": {
+            "infile_options": {"r": 24},
+            "outfile_options": {"sameq": null, "target": "vcd"}
+        }
+    }
+    
+To further elaborate:
+
+* ``source_path`` is a URI to the media file you'd like to encode. In this 
+  example, we use an S3 URI. 
+* ``dest_path`` is the full URI to where the output will end up.
+* ``preset`` corresponds to a preset specified in your ``nomconf.py``
+  configuration file. See the 
+  :py:data:`PRESETS <media_nommer.conf.settings.PRESETS>` setting for more
+  details. These are mandatory, and can optionally be used to specify default
+  encoding settings for a certain kind of encoding job. You also specify
+  which :ref:`nommer <nommers>` to use here.
+* ``notify_url`` is optional, and may be omitted entirely. If specified, this
+  URL is hit with a GET request when the encoding job completes.
+* ``job_options`` is optional, and may be omitted as well. The contents of this
+  depends on the :ref:`nommer <nommers2>` selected in your ``preset``.
+  See your ``nomconf.py`` if you need a refresher as to which preset uses which
+  nommer. For this example, we show 
+  :py:class:`FFmpegNommer <media_nommer.ec2nommerd.nommers.ffmpeg.FFmpegNommer>`,
+  which wraps the excellent FFmpeg_. See the documentation for the various 
+  :ref:`nommers` to see what ``job_options`` is used for.
+  
+The response to your request is also JSON-formatted, and looks like this::
+
+    {
+        "success": true, 
+        "job_id": "1f40fc92da241694750979ee6cf582f2d5d7d28e1833"
+    }
+    
+If an error is encountered, ``success`` will be ``false``, additional
+``message`` and ``error_code`` keys will be set::
+
+    {
+        "false": true, 
+        "error_code": "BADINPUT", 
+        "message": "Bad input file. Unable to encode."
+    }

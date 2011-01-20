@@ -46,7 +46,9 @@ class FFmpegNommer(BaseNommer):
         """
         for key, val in option_dict.items():
             cmd_list.append('-%s' % key)
-            cmd_list.append(val)
+            if val:
+                # None values are not used.
+                cmd_list.append(val)
 
     def __run_ffmpeg(self, fobj):
         """
