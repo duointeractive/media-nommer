@@ -60,13 +60,17 @@ class FFmpegNommer(BaseNommer):
         path = fobj.name
         out_fobj = tempfile.NamedTemporaryFile(mode='w+b', delete=True)
 
-        ffmpeg_cmd = ['ffmpeg', '-y', '-i', path]
+        #ffmpeg [[infile options][-i infile]]... {[outfile options] outfile}...
+        ffmpeg_cmd = ['ffmpeg', '-y']
 
         # Form the ffmpeg infile and outfile options from the options
         # stored in the SimpleDB domain.
         if self.job.job_options.has_key('infile_options'):
             infile_opts = self.job.job_options['infile_options']
             self.__append_inout_opts_to_cmd_list(infile_opts, ffmpeg_cmd)
+
+        # Specify infile
+        ffmpeg_cmd += ['-i', path]
 
         if self.job.job_options.has_key('outfile_options'):
             outfile_opts = self.job.job_options['outfile_options']
