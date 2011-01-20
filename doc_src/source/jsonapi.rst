@@ -77,7 +77,9 @@ To further elaborate:
   nommer. For this example, we show 
   :py:class:`FFmpegNommer <media_nommer.ec2nommerd.nommers.ffmpeg.FFmpegNommer>`,
   which wraps the excellent FFmpeg_. See the documentation for the various 
-  :ref:`nommers` to see what ``job_options`` is used for.
+  :ref:`nommers` to see what ``job_options`` is used for. In cases where values 
+  specified in your API request's ``job_options`` conflict with the ``options``
+  in your preset, the value from the API request is used.
   
 The response to your request is also JSON-formatted, and looks like this::
 

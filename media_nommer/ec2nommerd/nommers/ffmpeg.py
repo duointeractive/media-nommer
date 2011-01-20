@@ -9,7 +9,48 @@ from media_nommer.ec2nommerd.nommers.base_nommer import BaseNommer
 
 class FFmpegNommer(BaseNommer):
     """
-    A nommer that runs on EC2 instances, encoding media with FFmpeg_.
+    This :ref:`Nommer <nommers>` is used to encode media with the excellent
+    FFmpeg_ utility.
+    
+    **Presets**
+    
+    Below is an example 
+    :py:data:`PRESETS <media_nommer.conf.settings.PRESETS>`
+    dict for FFmpegNommer::
+    
+        'your_preset_name_here': {
+            'nommer': 'media_nommer.ec2nommerd.nommers.ffmpeg.FFmpegNommer',
+            'options': {
+                # These would be passed as infile options to ffmpeg
+                'infile_options': {
+                },
+                # These are passed as outfile options to ffmpeg
+                'outfile_options': {
+                    's': '320x240',
+                    # Some flags don't have values, like sameq
+                    'sameq': None,
+                    'ar': '22050',
+                    'ab': '48',
+                }
+            }
+        }
+        
+    In this case, the command created by this nommer would end up being::
+        
+        ffmpeg -y -i <infilename> -s 320x240 -sameq -ar 22050 -ab 48 <outfilename>
+    
+    Note that the ``sameq`` key in our ``outfile_options`` dict above has a
+    ``None`` value. You'll need to do this for flags or options that don't
+    require a value.
+    
+    .. tip:: Everything specified in the ``options`` dict may be overridden
+        in your encoding API requests. These merely act as presets.
+        
+    If you want no options by default, this is OK too::
+    
+        'minimal_preset': {
+            'nommer': 'media_nommer.ec2nommerd.nommers.ffmpeg.FFmpegNommer'
+        }
     """
     def _start_encoding(self):
         """

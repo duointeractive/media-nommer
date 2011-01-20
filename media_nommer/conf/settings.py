@@ -171,6 +171,46 @@ used to work with said protocol."""
 PRESETS = ()
 """Default: ``()``
 
-A dict of workflow presets. You must at least specify the Nommer class to
-use for each preset, but can go as far as specifying all encoding options,
-too."""
+A dict of workflow preset dicts. You must at least specify the 
+:ref:`Nommer <nommers>` class to use for each preset, but can go as far as 
+specifying defaults for all encoding options, too.
+
+.. note::
+    You **must** specify at least one preset. Each preset may only use one
+    :ref:`Nommer <nommers>`.
+
+This is a minimal preset::
+
+    PRESETS = {
+        'ffmpeg': {
+            'nommer': 'media_nommer.ec2nommerd.nommers.ffmpeg.FFmpegNommer',
+        },
+    }
+    
+Depending on which :ref:`Nommer <nommers>` you use, some may allow you
+to specify some default values to be passed to whatever software the
+:ref:`Nommer <nommers>` employs::
+
+    PRESETS = {
+        'preset_with_defaults': {
+            'nommer': 'media_nommer.ec2nommerd.nommers.ffmpeg.FFmpegNommer',
+            'options': {
+                # These are passed as outfile options to ffmpeg
+                'outfile_options': {
+                    's': '320x240',
+                    'r': '15',
+                    'sameq': None,
+                    'ar': '22050',
+                    'ab': '48',
+                }
+            }
+        },
+    }
+
+These may be over-ridden on a per-job basis. Anything in ``options`` merely
+serves as a default value.
+
+.. note:: The contents of the ``options`` dict will vary depending on which
+    :ref:`Nommer <nommers>` you use. See your nommer's documentation for
+    details on what this should look like.
+"""

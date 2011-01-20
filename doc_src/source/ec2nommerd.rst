@@ -37,3 +37,10 @@ class, which provides some foundational methods. View the source for these
 two classes for examples on how they work. You may sub-class or create your
 own nommer, adding it to at least one preset in your 
 :py:data:`PRESETS <media_nommer.conf.settings.PRESETS>` setting.
+
+The following Nommer classes are currently included with media-nommer. See
+each for details on how the ``job_options`` key should look like in your
+:py:data:`PRESETS <media_nommer.conf.settings.PRESETS>` setting in 
+your ``nomconf.py``:
+
+* :py:mod:`media_nommer.ec2nommerd.nommers.ffmpeg.FFmpegNommer`
