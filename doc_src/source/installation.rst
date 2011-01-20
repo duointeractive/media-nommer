@@ -89,8 +89,46 @@ want to add these settings values (at minimum):
     AWS_ACCESS_KEY_ID = 'YYYYYYYYYYYYYYYYYYYY'
     AWS_SECRET_ACCESS_KEY = 'ZZZZZZZZZZZZZZZZZZZZZZZZZZZZZ'
     
+    PRESETS = {
+        # A basic ffmpeg preset with no default options provided.
+        'basic_ffmpeg': {
+            'nommer': 'media_nommer.ec2nommerd.nommers.ffmpeg.FFmpegNommer',
+            # This options dict will vary wildly depending on which
+            # Nommer you are using. This example only holds true for 
+            # the FFmpegNommer 
+            'options': {
+                # These are passed as infile options to ffmpeg
+                'infile_options': {},
+                # These are passed as outfile options to ffmpeg
+                'outfile_options': {},
+            }
+        },
+    }
+    
 See :py:mod:`media_nommer.conf.settings` for a full list of settings (and their
-defaults) that you may override in your :file:`nomconf.py`. 
+defaults) that you may override in your :file:`nomconf.py`.
+    
+Presets
+-------
+
+Presets are ways to shorten and simplify your job submission API calls. They
+also make :ref:Nommers <nommers>` available via the :doc:`JSON API <jsonapi>`.
+
+.. note:: For a :ref:`Nommer <nommers>` to be available via the 
+    :doc:`JSON API <jsonapi>`, you must specify at least a 
+
+At the very least, you'll need to add a basic preset to for each of the
+:ref:Nommers <nommers>` you'd like to use. Specifying the ``options`` dict
+is completely optional.
+
+You'll want to look at the
+:py:data:`PRESETS <media_nommer.conf.settings.PRESETS>` setting for more
+details on how this works. The documentation for the :ref:`Nommer <nommers>`
+used in each preset determines what kind of values you can pass in the
+``options`` dict, so make sure you look them over as well.
+
+.. note:: Values provided to the API at submission time always take priority
+    over any directly conflicting default in a preset.
 
 Starting feederd
 ----------------
