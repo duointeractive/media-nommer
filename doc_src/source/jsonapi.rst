@@ -35,8 +35,8 @@ we'll add yours to the list.
 API Call Reference
 ------------------
 
-All API calls consist of a JSON-formatted **POST** request sent to the 
-following URLs. Responses are also JSON-formatted.
+All API calls are sent via **POST**, and have keys that may either be straight
+string values or JSON. Responses are also JSON-formatted.
 
 .. note:: You should send these calls to the host/port that your :doc:`feederd` 
     is running on. This defaults to 8001, but may specify when you call the
@@ -45,17 +45,16 @@ following URLs. Responses are also JSON-formatted.
 /job/submit/
 ^^^^^^^^^^^^
 
-This call submits a job for encoding. Here is an example call request body::
+This call submits a job for encoding. Here is an example call with POST
+keys and their values::
 
-    {
-        "source_path": "s3://AWS_ID:AWS_SECRET_KEY@BUCKET/KEYNAME.mp4",
-        "dest_path": "s3://AWS_ID:AWS_SECRET_KEY@OTHER_BUCKET/KEYNAME.mp4",
-        "preset": "movie_high_q",
-        "notify_url": "http://myapp.somewhere.com/encoding/job_done/",
-        "job_options": {
-            "infile_options": {"r": 24},
-            "outfile_options": {"sameq": null, "target": "vcd"}
-        }
+    source_path = s3://AWS_ID:AWS_SECRET_KEY@BUCKET/KEYNAME.mp4
+    dest_path = s3://AWS_ID:AWS_SECRET_KEY@OTHER_BUCKET/KEYNAME.mp4
+    preset = movie_high_q
+    notify_url = http://myapp.somewhere.com/encoding/job_done/
+    job_options = {
+        "infile_options": {"r": 24},
+        "outfile_options": {"sameq": null, "target": "vcd"}
     }
     
 To further elaborate:
@@ -71,8 +70,9 @@ To further elaborate:
   which :ref:`nommer <nommers>` to use here.
 * ``notify_url`` is optional, and may be omitted entirely. If specified, this
   URL is hit with a GET request when the encoding job completes.
-* ``job_options`` is optional, and may be omitted as well. The contents of this
-  depends on the :ref:`nommer <nommers2>` selected in your ``preset``.
+* ``job_options`` is an optional key that contains a JSON-serialized dict, and 
+  may be omitted as well. The contents of this depends on the 
+  :ref:`nommer <nommers2>` selected in your ``preset``.
   See your ``nomconf.py`` if you need a refresher as to which preset uses which
   nommer. For this example, we show 
   :py:class:`FFmpegNommer <media_nommer.ec2nommerd.nommers.ffmpeg.FFmpegNommer>`,
