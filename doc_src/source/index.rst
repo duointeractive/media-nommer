@@ -30,7 +30,7 @@ Learning more
 
 To learn more about media-nommer, see the :doc:`introduction`.
 
-**Project Status:** Early development
+**Project Status:** Alpha
 
 **License:** media-nommer is licensed under the `BSD License`_.
 
