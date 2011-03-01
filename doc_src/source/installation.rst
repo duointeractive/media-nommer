@@ -131,12 +131,20 @@ Presets
 Presets are ways to shorten and simplify your job submission API calls. They
 also make :ref:`Nommers <nommers>` available via the :doc:`JSON API <jsonapi>`.
 
-.. note:: For a :ref:`Nommer <nommers>` to be available via the 
-    :doc:`JSON API <jsonapi>`, you must specify at least a 
+.. note:: Encoding jobs are submitted through the :doc:`JSON API <jsonapi>`
+    by specifying a preset to use, instead of referring to a 
+    :ref:`Nommer <nommers>` directly. If you want to make a 
+    :ref:`Nommer <nommers>` available through the :doc:`JSON API <jsonapi>`, 
+    you will need a preset key containing a dict with a
+    ``nommer`` key pointing to the nommer's class (as in the example in the
+    *Configuring* section).  
 
 At the very least, you'll need to add a basic preset to for each of the
-:ref:Nommers <nommers>` you'd like to use. Specifying the ``options`` dict
-is completely optional.
+:ref:`Nommers <nommers>` you'd like to use. Specifying the ``options`` dict
+is completely optional, and may be overridden in your API request. Also keep
+in mind that the ``options`` dict may differ, depending on the
+:ref:`Nommers <nommers>` you're using (see the 
+:ref:`Nommer <nommers>` docs for more details).
 
 You'll want to look at the
 :py:data:`PRESETS <media_nommer.conf.settings.PRESETS>` setting for more
