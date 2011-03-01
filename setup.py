@@ -29,7 +29,7 @@ setup(
     license='BSD License',
     url='http://duointeractive.github.com/media-nommer/',
     platforms=["any"],
-    requires=['boto', 'twisted', 'txrestapi', 'simplejson'],
+    install_requires=['boto>=2.0', 'twisted', 'txrestapi', 'simplejson'],
     provides=['media_nommer'],
     packages=[
         'media_nommer',
