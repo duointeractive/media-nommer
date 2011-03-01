@@ -129,7 +129,7 @@ Presets
 -------
 
 Presets are ways to shorten and simplify your job submission API calls. They
-also make :ref:Nommers <nommers>` available via the :doc:`JSON API <jsonapi>`.
+also make :ref:`Nommers <nommers>` available via the :doc:`JSON API <jsonapi>`.
 
 .. note:: For a :ref:`Nommer <nommers>` to be available via the 
     :doc:`JSON API <jsonapi>`, you must specify at least a 
