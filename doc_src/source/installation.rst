@@ -39,37 +39,54 @@ Requirements
 Installing
 ----------
 
-For the sake of clarity, the media-nommer Python package on PyPi contains
+For the sake of clarity, the media-nommer Python package contains
 the sources for :doc:`feederd` and :doc:`ec2nommerd`. You will want to install
 this package on whatever machine you'd like to run :doc:`feederd` on. You do
 not need to do any setup work for :doc:`ec2nommerd`, as those are ran on an
 EC2_ instance that is based off of an AMI that we have created for you.
 
-The easiest way is to install the package is through :command:`pip` or
-:command:`easy_install`::
+Since we are not yet distributing media-nommer on PyPi, the easiest way is to 
+install the package is through :command:`pip`::
 
-    pip install media-nommer
+    pip install --upgrade git+http://github.com/duointeractive/media-nommer.git#egg=media_nommer
     
 .. note::
-    This will only work once we start distributing media-nommer on PyPi. For
-    now, you'll need to download a tarball/zip, or check the source out from
-    our `GitHub project`_ and install via the enclosed ``setup.py``. See the
-    ``requirements.txt`` within the project for dependencies.
-    
-You will then need to visit `Amazon AWS`_ and sign up for the following
-services:
+    If you don't have access to :command:`pip`, you may download a tarball/zip, 
+    from our `GitHub project`_ and install via the enclosed ``setup.py``. See 
+    the ``requirements.txt`` within the project for dependencies.
+
+
+Signing up for AWS
+------------------
+
+After you have installed the media-nommer Python package on your machine(s),
+you'll need to visit `Amazon AWS`_ and sign up for the following services:
 
 * SimpleDB_
 * SQS_
 * EC2_
 
-Fees are based on what you actually use, so signing up for these services will
-incur no costs unless you use them.
+It is important to understand that even if you already have an Amazon account,
+you need to sign up to each of these services specifically for your account to
+have access to said services. This is a very quick process, and typically
+involves looking over an agreement and accepting it.
 
-You will then want to create a ``media_nommer`` *Security Group* through the 
-AWS_ management console for your EC2_ instances to be part of. You will also
-need to create an SSH key pair. Make sure to keep track of the name of your
-key pair, as you will need that in the configuration stage.
+.. tip:: Signing up for these services is outside the scope of this document. 
+    Please contact AWS_ support with questions regarding this step. Their
+    community forums are also a great resource.
+
+Fees are based on what you actually use, so signing up for these services will
+incur no costs unless you use them. 
+
+You will need to create a ``media_nommer`` EC2 *Security Group* through the 
+AWS_ management console for your EC2_ instances to be part of. 
+
+.. warning:: Failure to create an EC2 security group will result in
+    media-nommer not being able to spawn EC2 instances, which means
+    no encoding for you.
+
+You will also need to create an SSH key pair. Make sure to keep track of the 
+name of your key pair, as you will need this in the configuration stage.
     
 .. _installing_configuring:
     
