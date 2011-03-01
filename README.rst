@@ -4,18 +4,17 @@ media-nommer
 media-nommer is a Python-based media encoding system, using Amazon AWS
 as its backbone. 
 
-
 Status
 ------
 
-media-nommer is currently in very early development. At this time, the
+media-nommer is currently usable, but in development. At this time, the
 software is probably only appropriate for those with a strong grasp on
-Python and Amazon AWS.
+Python.
   
 Documentation
 -------------
 
-Documentation may be found on our `website`_.
+Documentation may be found on the media-nommer `website`_.
 
 .. _website: http://duointeractive.github.com/media-nommer/
   
