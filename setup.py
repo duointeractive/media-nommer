@@ -5,9 +5,10 @@ import media_nommer
 
 long_description = open('README.rst').read()
 
-
 TWISTED_PLUGIN_PATH = os.path.join(get_python_lib(), 'twisted', 'plugins')
-NOMMER_PLUGIN_PATH = os.path.join('media_nommer', 'twisted', 'plugins')
+TMP_BUILD_PATH = os.path.realpath(os.path.dirname(__file__))
+NOMMER_PLUGIN_PATH = os.path.join(TMP_BUILD_PATH,
+                                  'media_nommer', 'twisted', 'plugins')
 data_files = [
     (
         TWISTED_PLUGIN_PATH,
