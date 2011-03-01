@@ -35,11 +35,11 @@ setup(
         'media_nommer',
         'media_nommer.conf',
         'media_nommer.core',
+        'media_nommer.ec2nommerd',
         'media_nommer.ec2nommerd.nommers',
         'media_nommer.ec2nommerd.nommers.ec2_ffmpeg',
-        'media_nommer.core.storage_backends',
-        'media_nommer.ec2nommerd',
         'media_nommer.ec2nommerd.web',
+        'media_nommer.core.storage_backends',
         'media_nommer.feederd',
         'media_nommer.feederd.web',
         'media_nommer.utils'
