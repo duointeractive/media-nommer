@@ -72,7 +72,7 @@ To further elaborate:
   URL is hit with a GET request when the encoding job completes.
 * ``job_options`` is an optional key that contains a JSON-serialized dict, and 
   may be omitted as well. The contents of this depends on the 
-  :ref:`nommer <nommers2>` selected in your ``preset``.
+  :ref:`nommer <nommers>` selected in your ``preset``.
   See your ``nomconf.py`` if you need a refresher as to which preset uses which
   nommer. For this example, we show 
   :py:class:`FFmpegNommer <media_nommer.ec2nommerd.nommers.ffmpeg.FFmpegNommer>`,
