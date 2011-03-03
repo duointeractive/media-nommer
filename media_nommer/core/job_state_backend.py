@@ -374,9 +374,9 @@ class JobStateBackend(object):
         :rtype: list 
         :returns: A list of unfinished :py:class:`EncodingJob` objects.
         """
-        query_str = "SELECT * FROM %s WHERE job_state != ' % s' " \
-                    "and job_state != ' % s' " \
-                    "and job_state != ' % s'" % (
+        query_str = "SELECT * FROM %s WHERE job_state != '%s' " \
+                    "and job_state != '%s' " \
+                    "and job_state != '%s'" % (
               settings.SIMPLEDB_JOB_STATE_DOMAIN,
               'FINISHED',
               'ERROR',

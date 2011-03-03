@@ -114,9 +114,9 @@ class JobCache(dict):
         for job in jobs:
             cls.update_job(job)
 
-        logger.info("Jobs loaded from SDB to cache:")
+        print("Jobs loaded from SDB to cache:")
         for job in jobs:
-            logger.info('* %s (%s -- %s)' % (
+            print('* %s (%s -- %s)' % (
                 job.unique_id, job.job_state,
                 job.is_finished())
             )
