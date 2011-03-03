@@ -83,7 +83,14 @@ class EC2InstanceManager(object):
                      "Current unfinished jobs: %d" % num_unfinished_jobs)
 
         job_capacity = num_instances * settings.MAX_ENCODING_JOBS_PER_EC2_INSTANCE
-        cap_plus_thresh = job_capacity + settings.JOB_OVERFLOW_THRESH
+
+        if job_capacity == 0:
+            # Don't factor in overflow thresh or anything if we have no
+            # instances or capacity.
+            cap_plus_thresh = 0
+        else:
+            cap_plus_thresh = job_capacity + settings.JOB_OVERFLOW_THRESH
+
         logger.debug("EC2InstanceManager.spawn_if_needed(): " \
                      "Job capacity (%d w/ thresh): %d" % (job_capacity,
                                                          cap_plus_thresh))
@@ -93,7 +100,10 @@ class EC2InstanceManager(object):
         has_jobs_but_no_instances = num_unfinished_jobs > 0 and num_instances == 0
         if is_over_capacity or has_jobs_but_no_instances:
             overage = num_unfinished_jobs - job_capacity
-            overage -= settings.JOB_OVERFLOW_THRESH
+            if job_capacity > 0:
+                # Only factor overhold threshold in when we have capacity
+                # available in some form.
+                overage -= settings.JOB_OVERFLOW_THRESH
             logger.info("EC2InstanceManager.spawn_if_needed(): " \
                          "Observed labor shortage of: %d" % overage)
 
@@ -107,7 +117,8 @@ class EC2InstanceManager(object):
             # The boto Reservation object. Its 'instances' attribute is the
             # important bit.
             if num_new_instances > 0:
-                return cls.spawn_instances(num_new_instances)
+                pass
+                #return cls.spawn_instances(num_new_instances)
         # No new instances.
         return None
 
