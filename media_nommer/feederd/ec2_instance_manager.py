@@ -97,12 +97,17 @@ class EC2InstanceManager(object):
             logger.info("EC2InstanceManager.spawn_if_needed(): " \
                          "Observed labor shortage of: %d" % overage)
 
+            # Raw # of instances needing to be spawned.
             num_new_instances = overage / settings.MAX_ENCODING_JOBS_PER_EC2_INSTANCE
-            num_new_instances = max(num_new_instances, 1)
+            # In the case of a really weird setting value, don't spawn anything.
+            num_new_instances = max(num_new_instances, 0)
+            # Also don't spawn more than the max configured instances.
+            num_new_instances = min(num_new_instances, settings.MAX_NUM_EC2_INSTANCES)
 
             # The boto Reservation object. Its 'instances' attribute is the
             # important bit.
-            return cls.spawn_instances(num_new_instances)
+            if num_new_instances > 0:
+                return cls.spawn_instances(num_new_instances)
         # No new instances.
         return None
 
