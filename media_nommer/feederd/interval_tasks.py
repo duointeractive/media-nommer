@@ -97,4 +97,4 @@ def register_tasks():
     if settings.FEEDERD_ALLOW_EC2_LAUNCHES:
         logger.debug("feederd will automatically scale EC2 instances.")
         task.LoopingCall(task_manage_ec2_instances).start(
-                            settings.FEEDERD_AUTO_SCALE_INTERVAL)
+                            settings.FEEDERD_AUTO_SCALE_INTERVAL, now=False)
