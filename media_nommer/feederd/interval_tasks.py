@@ -86,16 +86,15 @@ def register_tasks():
     Registers all tasks. Called by the :doc:`../feederd` Twisted_ plugin.
     """
     task.LoopingCall(task_check_for_job_state_changes).start(
-                            settings.FEEDERD_JOB_STATE_CHANGE_CHECK_INTERVAL, 
+                            settings.FEEDERD_JOB_STATE_CHANGE_CHECK_INTERVAL,
                             now=False)
-    
+
     task.LoopingCall(task_prune_jobs).start(
-                            settings.FEEDERD_PRUNE_JOBS_INTERVAL, 
+                            settings.FEEDERD_PRUNE_JOBS_INTERVAL,
                             now=False)
-    
+
     # Only register the instance auto-spawning if enabled.
     if settings.FEEDERD_ALLOW_EC2_LAUNCHES:
         logger.debug("feederd will automatically scale EC2 instances.")
         task.LoopingCall(task_manage_ec2_instances).start(
-                            settings.FEEDERD_AUTO_SCALE_INTERVAL, 
-                            now=True)
+                            settings.FEEDERD_AUTO_SCALE_INTERVAL)
