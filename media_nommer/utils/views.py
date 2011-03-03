@@ -5,7 +5,7 @@ class BaseView(object):
     The simplest base case for a view class. This is safe to use directly.
     See __new__() for the order of execution of the rendering methods.
     """
-    
+
     def __new__(cls, request, *args, **kwargs):
         """
         The top-level factory function for views when called by urls.py.
@@ -15,7 +15,7 @@ class BaseView(object):
         """
         # Create a new instance of this class.
         view = cls.new(request, *args, **kwargs)
-    
+
         # Run all of the view's generation code.
         view.view()
         return view.render()
@@ -42,14 +42,30 @@ class BaseView(object):
         # This is where the values to populate the RequestContext live.
         # You generally want to add keys to this dict rather than over-write
         # it with a new dict in your view.
-        self.context = {}
-    
+        self.context = {
+            'success': True
+        }
+
+    def set_error(self, message):
+        """
+        Sets an error state and HTTP code. 
+        
+        .. note:: You'll probably want to return your ``view()`` method 
+            after calling this.
+        
+        :param str message: The error message to return in the response.
+        """
+        self.context = {
+            'success': False,
+            'message': message,
+        }
+
     def render(self):
         """
         Handle construction of the response and return it.
         """
         return simplejson.dumps(self.context)
-    
+
     def view(self, *args, **kwargs):
         """
         Override this with your view logic. You'll mostly want to manipulate

@@ -24,13 +24,19 @@ class JobSubmitView(BaseView):
         print "OPTIONS", user_job_options
 
         # Retrieve the given preset from nomconf.
-        preset_dict = settings.PRESETS[preset]
+        try:
+            preset_dict = settings.PRESETS[preset]
+        except KeyError:
+            self.set_error('No such preset.')
+            return
+
         # Determine the nommer based on the preset.
         nommer = preset_dict['nommer']
         # Get the preset's job options dict.
         job_options = preset_dict['options']
         # Override preset's options with user-specified values.
-        job_options.update(user_job_options)
+        # TODO: Fix this for multi-pass!
+        #job_options.update(user_job_options)
         print "NEW OPTS", job_options
 
         # Create a new job and save it to the DB/queue.
@@ -41,4 +47,4 @@ class JobSubmitView(BaseView):
         JobCache.update_job(job)
 
         # This is serialized and returned to the user.
-        self.context = {'success': True, 'job_id': unique_job_id}
+        self.context.update({'job_id': unique_job_id})

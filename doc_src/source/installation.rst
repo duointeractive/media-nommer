@@ -48,6 +48,7 @@ EC2_ instance that is based off of an AMI that we have created for you.
 Since we are not yet distributing media-nommer on PyPi, the easiest way is to 
 install the package is through :command:`pip`::
 
+    pip install txrestapi twisted
     pip install --upgrade git+http://github.com/duointeractive/media-nommer.git#egg=media_nommer
     
 .. note::
@@ -55,6 +56,11 @@ install the package is through :command:`pip`::
     from our `GitHub project`_ and install via the enclosed ``setup.py``. See 
     the ``requirements.txt`` within the project for dependencies.
 
+We have to install Twisted before media-nommer because of an odd behavior
+with :command:`pip`. 
+
+.. tip:: Any time that you upgrade or re-install Twisted, you must also 
+    re-install media-nommer.
 
 Signing up for AWS
 ------------------

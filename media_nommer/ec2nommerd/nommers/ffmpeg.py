@@ -20,20 +20,22 @@ class FFmpegNommer(BaseNommer):
     
         'your_preset_name_here': {
             'nommer': 'media_nommer.ec2nommerd.nommers.ffmpeg.FFmpegNommer',
-            'options': {
-                # These would be passed as infile options to ffmpeg
-                'infile_options': {
-                },
-                # These are passed as outfile options to ffmpeg
-                'outfile_options': {
-                    's': '320x240',
-                    # Some flags don't have values, like sameq
-                    'sameq': None,
-                    'ar': '22050',
-                    'ab': '48',
-                }
-            }
-        }
+            'options': [
+                {
+                    # These would be passed as infile options to ffmpeg
+                    'infile_options': {
+                    },
+                    # These are passed as outfile options to ffmpeg
+                    'outfile_options': {
+                        's': '320x240',
+                        # Some flags don't have values, like sameq
+                        'sameq': None,
+                        'ar': '22050',
+                        'ab': '48',
+                    }
+                }, # end pass 1
+            ], # end encoding pass list (max of 2)
+        } # end preset
         
     In this case, the command created by this nommer would end up being::
         
@@ -85,11 +87,50 @@ class FFmpegNommer(BaseNommer):
         :param list cmd_list: The list being formed to pass to ``Popen()``
             in :py:meth:`__run_ffmpeg`.
         """
-        for key, val in option_dict.items():
+        for key, val in option_dict:
             cmd_list.append('-%s' % key)
-            if val:
+            if val or val == 0:
                 # None values are not used.
-                cmd_list.append(val)
+                cmd_list.append(str(val))
+
+    def __assemble_ffmpeg_cmd_list(self, encoding_pass_options, infile_obj,
+                                   outfile_obj, is_two_pass=False,
+                                   is_second_pass=False):
+        """
+        Assembles a command list that subprocess.Popen() will use within
+        self.__run_ffmpeg().
+        
+        :param file infile_obj: A file-like object for input.
+        :param file outfile_obj: A file-like object to store the output.
+        :rtype: list
+        :returns: A list to be passed to subprocess.Popen().
+        """
+        #ffmpeg [[infile options][-i infile]]... {[outfile options] outfile}...
+        ffmpeg_cmd = ['ffmpeg', '-y']
+
+        # Form the ffmpeg infile and outfile options from the options
+        # stored in the SimpleDB domain.
+        if encoding_pass_options.has_key('infile_options'):
+            infile_opts = encoding_pass_options['infile_options']
+            self.__append_inout_opts_to_cmd_list(infile_opts, ffmpeg_cmd)
+
+        # Specify infile
+        ffmpeg_cmd += ['-i', infile_obj.name]
+
+        if encoding_pass_options.has_key('outfile_options'):
+            outfile_opts = encoding_pass_options['outfile_options']
+            self.__append_inout_opts_to_cmd_list(outfile_opts, ffmpeg_cmd)
+
+        if is_two_pass and not is_second_pass:
+            # First pass of a 2-pass encoding.
+            ffmpeg_cmd.append('/dev/null')
+        else:
+            # Second pass of a 2-pass encoding, or one-pass.
+            ffmpeg_cmd.append(outfile_obj.name)
+
+        logger.debug("FFmpegNommer.__run_ffmpeg(): Command to run: %s" % ' '.join(ffmpeg_cmd))
+
+        return ffmpeg_cmd
 
     def __run_ffmpeg(self, fobj):
         """
@@ -100,45 +141,38 @@ class FFmpegNommer(BaseNommer):
             If an error happens, ``None`` is returned, and the ERROR job
             state is set.
         """
-        path = fobj.name
+        is_two_pass = len(self.job.job_options) > 1
         out_fobj = tempfile.NamedTemporaryFile(mode='w+b', delete=True)
 
-        #ffmpeg [[infile options][-i infile]]... {[outfile options] outfile}...
-        ffmpeg_cmd = ['ffmpeg', '-y']
+        pass_counter = 1
+        for encoding_pass_options in self.job.job_options:
+            is_second_pass = pass_counter == 2
+            # Based on the given options, assemble the command list to
+            # pass on to Popen.
+            ffmpeg_cmd = self.__assemble_ffmpeg_cmd_list(
+                             encoding_pass_options,
+                             fobj, out_fobj,
+                             is_two_pass=is_two_pass,
+                             is_second_pass=is_second_pass)
 
-        # Form the ffmpeg infile and outfile options from the options
-        # stored in the SimpleDB domain.
-        if self.job.job_options.has_key('infile_options'):
-            infile_opts = self.job.job_options['infile_options']
-            self.__append_inout_opts_to_cmd_list(infile_opts, ffmpeg_cmd)
+            process = subprocess.Popen(ffmpeg_cmd,
+                                       stdout=subprocess.PIPE,
+                                       stderr=subprocess.PIPE)
+            cmd_output = process.communicate()
 
-        # Specify infile
-        ffmpeg_cmd += ['-i', path]
+            # 0 is success, so anything but that is bad.
+            error_happened = process.returncode != 0
 
-        if self.job.job_options.has_key('outfile_options'):
-            outfile_opts = self.job.job_options['outfile_options']
-            self.__append_inout_opts_to_cmd_list(outfile_opts, ffmpeg_cmd)
+            if not error_happened and (is_second_pass or not is_two_pass):
+                # No errors, return the file object for uploading.
+                out_fobj.seek(0)
+                return out_fobj
+            elif error_happened:
+                # Error found, return nothing so the nommer can die.
+                logger.error(message_or_obj="Error encountered while running ffmpeg.")
+                logger.error(message_or_obj=cmd_output[0])
+                logger.error(message_or_obj=cmd_output[1])
+                self.wrapped_set_job_state('ERROR', details=cmd_output[1])
+                return None
 
-        ffmpeg_cmd.append(out_fobj.name)
-
-        logger.debug("FFmpegNommer.__run_ffmpeg(): Command to run: %s" % ffmpeg_cmd)
-
-        process = subprocess.Popen(ffmpeg_cmd,
-                                   stdout=subprocess.PIPE,
-                                   stderr=subprocess.PIPE)
-        cmd_output = process.communicate()
-
-        # 0 is success, so anything but that is bad.
-        error_happened = process.returncode != 0
-
-        if not error_happened:
-            # No errors, return the file object for uploading.
-            out_fobj.seek(0)
-            return out_fobj
-        else:
-            # Error found, return nothing so the nommer can die.
-            logger.error(message_or_obj="Error encountered while running ffmpeg.")
-            logger.error(message_or_obj=cmd_output[0])
-            logger.error(message_or_obj=cmd_output[1])
-            self.wrapped_set_job_state('ERROR', details=cmd_output[1])
-            return None
+            pass_counter += 1
