@@ -4,7 +4,9 @@ of as a protocol or a foundation to assist in maintaining a consistent API
 between Nommers.
 """
 import os
+import traceback
 import tempfile
+import shutil
 from media_nommer.utils import logger
 from media_nommer.ec2nommerd.node_state import NodeStateManager
 from media_nommer.core.storage_backends import get_backend_for_uri
@@ -23,7 +25,21 @@ class BaseNommer(object):
         Start nomming. If you're going to override this, make sure to follow
         the same basic job state updating flow if possible.
         """
-        self._start_encoding()
+        # Have to create a temporary directory, since ffmpeg's libx264 encoder
+        # doesn't obey alternate logfile paths. I'm sure other software
+        # has similar limitations, so let's just not take any chances.
+        self.temp_cwd = tempfile.mkdtemp()
+
+        try:
+            self._start_encoding()
+        except:
+            # If we run into any un-handled exceptions, error out the job
+            # and set as its state details.
+            self.wrapped_set_job_state('ERROR', details=traceback.format_exc())
+            traceback.print_exc()
+
+        # Clean up the temporary CWD used during nomming.
+        shutil.rmtree(self.temp_cwd, ignore_errors=True)
 
     def _start_encoding(self):
         """

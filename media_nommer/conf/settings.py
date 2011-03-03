@@ -60,14 +60,11 @@ EC2_ encoder instances."""
 # Intelligent scaling settings
 ###############################
 
-MAX_ENCODING_JOBS_PER_EC2_INSTANCE = 1
-"""Default: ``1``
+MAX_ENCODING_JOBS_PER_EC2_INSTANCE = 2
+"""Default: ``2``
 
 The maximum number of jobs that should ever run on a single EC2_ instance at
-the same time.
-
-.. warning:: Until some issues are worked out with ffmpeg temp files,
-    this can be no more than 1."""
+the same time."""
 MAX_NUM_EC2_INSTANCES = 3
 """Default: ``3``
 

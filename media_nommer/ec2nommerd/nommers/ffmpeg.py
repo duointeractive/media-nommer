@@ -2,6 +2,7 @@
 Contains a class used for nomming media on EC2 via FFmpeg_. This is used in
 conjunction with the ec2nommerd Twisted_ plugin.
 """
+import os
 import tempfile
 import subprocess
 from media_nommer.utils import logger
@@ -64,6 +65,7 @@ class FFmpegNommer(BaseNommer):
 
         # Encode the file. The return value is a tempfile with the output.
         out_fobj = self.__run_ffmpeg(fobj)
+
         if not out_fobj:
             # Failure! We're going nowhere.
             fobj.close()
@@ -74,8 +76,11 @@ class FFmpegNommer(BaseNommer):
 
         self.wrapped_set_job_state('FINISHED')
         logger.info("FFmpegNommer: Job %s has been successfully encoded." % self.job.unique_id)
+
+        # Clean these up explicitly, just in case.
         fobj.close()
         out_fobj.close()
+
         return True
 
     def __append_inout_opts_to_cmd_list(self, option_dict, cmd_list):
@@ -155,9 +160,16 @@ class FFmpegNommer(BaseNommer):
                              is_two_pass=is_two_pass,
                              is_second_pass=is_second_pass)
 
+            # Do this for ffmpeg's sake. Allows more than one concurrent
+            # encoding job per EC2 instance.
+            os.chdir(self.temp_cwd)
+            # Fire up ffmpeg.
             process = subprocess.Popen(ffmpeg_cmd,
                                        stdout=subprocess.PIPE,
                                        stderr=subprocess.PIPE)
+            # Get back to home dir. Not sure this is necessary, but meh.
+            os.chdir(os.path.expanduser('~'))
+            # Block here while waiting for output
             cmd_output = process.communicate()
 
             # 0 is success, so anything but that is bad.
