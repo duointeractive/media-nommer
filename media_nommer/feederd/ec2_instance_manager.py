@@ -117,8 +117,7 @@ class EC2InstanceManager(object):
             # The boto Reservation object. Its 'instances' attribute is the
             # important bit.
             if num_new_instances > 0:
-                pass
-                #return cls.spawn_instances(num_new_instances)
+                return cls.spawn_instances(num_new_instances)
         # No new instances.
         return None
 
