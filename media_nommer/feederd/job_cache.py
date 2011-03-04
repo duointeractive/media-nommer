@@ -109,14 +109,15 @@ class JobCache(dict):
         Loads all of the un-finished jobs into the job cache. This is
         performed when :doc:`../feederd` starts.
         """
-        logger.info("Populating job cache from SimpleDB.")
+        # Use print here because logging isn't fully configured at this point?
+        print("Populating job cache from SimpleDB.")
         jobs = JobStateBackend.get_unfinished_jobs()
         for job in jobs:
             cls.update_job(job)
 
-        logger.info("Jobs loaded from SDB to cache:")
+        print("Jobs loaded from SDB to cache:")
         for job in jobs:
-            logger.info('* %s (%s -- %s)' % (
+            print('* %s (%s -- %s)' % (
                 job.unique_id, job.job_state,
                 job.is_finished())
             )
