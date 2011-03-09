@@ -197,16 +197,18 @@ to specify some default values to be passed to whatever software the
     PRESETS = {
         'preset_with_defaults': {
             'nommer': 'media_nommer.ec2nommerd.nommers.ffmpeg.FFmpegNommer',
-            'options': {
-                # These are passed as outfile options to ffmpeg
-                'outfile_options': {
-                    's': '320x240',
-                    'r': '15',
-                    'sameq': None,
-                    'ar': '22050',
-                    'ab': '48',
-                }
-            }
+            'options': [ 
+                {
+                    # These are passed as outfile options to ffmpeg
+                    'outfile_options': [
+                        ('s', '320x240'),
+                        ('r', '15'),
+                        ('sameq', None),
+                        ('ar', '22050'),
+                        ('ab', '48'),
+                    ],
+                },
+            ],
         },
     }
 

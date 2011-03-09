@@ -119,12 +119,16 @@ want to add these settings values (at minimum):
             # This options dict will vary wildly depending on which
             # Nommer you are using. This example only holds true for 
             # the FFmpegNommer 
-            'options': {
-                # These are passed as infile options to ffmpeg
-                'infile_options': {},
-                # These are passed as outfile options to ffmpeg
-                'outfile_options': {},
-            }
+            'options': [
+                {
+                    # These are passed as infile options to ffmpeg
+                    'infile_options': [],
+                    # These are passed as outfile options to ffmpeg
+                    'outfile_options': [
+                        ('threads', 0),
+                    ],
+                },
+            ],
         },
     }
     
