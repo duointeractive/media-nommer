@@ -64,6 +64,7 @@ class FFmpegNommer(BaseNommer):
         fobj = self.download_source_file()
 
         # Encode the file. The return value is a tempfile with the output.
+        self.wrapped_set_job_state('ENCODING')
         out_fobj = self.__run_ffmpeg(fobj)
 
         if not out_fobj:
