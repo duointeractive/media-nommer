@@ -24,31 +24,34 @@ class FFmpegNommer(BaseNommer):
             'options': [
                 {
                     # These would be passed as infile options to ffmpeg
-                    'infile_options': {
-                    },
+                    'infile_options': [
+                    ],
                     # These are passed as outfile options to ffmpeg
-                    'outfile_options': {
-                        's': '320x240',
+                    'outfile_options': [
+                        ('s', '320x240'),
                         # Some flags don't have values, like sameq
-                        'sameq': None,
-                        'ar': '22050',
-                        'ab': '48',
-                    }
+                        ('sameq', None),
+                        ('ar', '22050'),
+                        ('ab', '48'),
+                    ],
                 }, # end pass 1
-            ], # end encoding pass list (max of 2)
+                
+                # If you are doing a 2-pass encoding, copy/paste the first
+                # dict in this list and append that here. You'll need to
+                # specify pass numbers and vpre's, but that's just straight
+                # FFmpeg stuff.
+
+            ], # end encoding options pass list (max of 2)
         } # end preset
         
     In this case, the command created by this nommer would end up being::
         
         ffmpeg -y -i <infilename> -s 320x240 -sameq -ar 22050 -ab 48 <outfilename>
     
-    Note that the ``sameq`` key in our ``outfile_options`` dict above has a
-    ``None`` value. You'll need to do this for flags or options that don't
-    require a value.
-    
-    .. tip:: Everything specified in the ``options`` dict may be overridden
-        in your encoding API requests. These merely act as presets.
-        
+    Note that the ``sameq`` key, value tuple in our ``outfile_options`` dict 
+    above has a ``None`` value. You'll need to do this for flags or options 
+    that don't require a value.
+           
     If you want no options by default, this is OK too::
     
         'minimal_preset': {
