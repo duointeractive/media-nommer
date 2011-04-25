@@ -141,14 +141,18 @@ class JobCache(dict):
             logger.info("Job state changes found: %s" % changed_jobs)
             for job in changed_jobs:
                 if cls.is_job_cached(job):
-                    logger.info("* Job state changed %s: %s -> %s" % (
-                        job.unique_id,
-                        # Current job state in cache
-                        cls.get_job(job).job_state,
-                        # New incoming job state
-                        job.job_state,
-                    ))
-                    cls.update_job(job)
+                    current_state = cls.get_job(job).job_state
+                    new_state = job.job_state
+
+                    if current_state != new_state:
+                        logger.info("* Job state changed %s: %s -> %s" % (
+                            job.unique_id,
+                            # Current job state in cache
+                            current_state,
+                            # New incoming job state
+                            new_state,
+                        ))
+                        cls.update_job(job)
         return changed_jobs
 
     @classmethod
