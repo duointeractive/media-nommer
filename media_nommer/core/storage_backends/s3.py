@@ -6,6 +6,7 @@ import boto
 from boto.s3.resumable_download_handler import ResumableDownloadHandler
 from media_nommer.utils import logger
 from media_nommer.utils.uri_parsing import get_values_from_media_uri
+from media_nommer.core.storage_backends.exceptions import InfileNotFoundException
 
 class S3Backend(object):
     """
@@ -46,7 +47,13 @@ class S3Backend(object):
 
         logger.debug("S3Backend.download_file(): " \
                      "Downloading: %s" % uri)
-        dlhandler = ResumableDownloadHandler(num_retries=10)
+        try:
+            dlhandler = ResumableDownloadHandler(num_retries=10)
+        except AttributeError:
+            # Raised by ResumableDownloadHandler in boto when the given S3
+            # key can't be found.
+            raise InfileNotFoundException()
+
         dlhandler.get_file(key, fobj, None)
 
         logger.debug("S3Backend.download_file(): " \
