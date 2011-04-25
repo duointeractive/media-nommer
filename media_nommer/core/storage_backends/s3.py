@@ -54,7 +54,8 @@ class S3Backend(object):
         except AttributeError:
             # Raised by ResumableDownloadHandler in boto when the given S3
             # key can't be found.
-            raise InfileNotFoundException()
+            message = "The specified input file cannot be found."
+            raise InfileNotFoundException(message)
 
         logger.debug("S3Backend.download_file(): " \
                      "Download of %s completed." % uri)

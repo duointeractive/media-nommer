@@ -17,4 +17,4 @@ class InfileNotFoundException(StorageException):
     Raised by storage backends when the given source_path (the media to encode)
     cannot be found. 
     """
-    message = "The specified input file cannot be found."
+    pass
