@@ -109,8 +109,10 @@ class EC2InstanceManager(object):
 
             # Raw # of instances needing to be spawned.
             num_new_instances = overage / settings.MAX_ENCODING_JOBS_PER_EC2_INSTANCE
-            # In the case of a really weird setting value, don't spawn anything.
-            num_new_instances = max(num_new_instances, 0)
+            # At this point, we know there's an overage, even with the overflow
+            # thresh factored in (if there is at least one EC2 instance
+            # already running).
+            num_new_instances = max(num_new_instances, 1)
             # Also don't spawn more than the max configured instances.
             num_new_instances = min(num_new_instances, settings.MAX_NUM_EC2_INSTANCES)
 
