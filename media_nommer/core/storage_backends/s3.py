@@ -47,14 +47,14 @@ class S3Backend(object):
 
         logger.debug("S3Backend.download_file(): " \
                      "Downloading: %s" % uri)
+        
+        dlhandler = ResumableDownloadHandler(num_retries=10)
         try:
-            dlhandler = ResumableDownloadHandler(num_retries=10)
+            dlhandler.get_file(key, fobj, None)
         except AttributeError:
             # Raised by ResumableDownloadHandler in boto when the given S3
             # key can't be found.
             raise InfileNotFoundException()
-
-        dlhandler.get_file(key, fobj, None)
 
         logger.debug("S3Backend.download_file(): " \
                      "Download of %s completed." % uri)
