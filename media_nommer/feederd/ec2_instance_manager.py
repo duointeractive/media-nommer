@@ -82,6 +82,10 @@ class EC2InstanceManager(object):
         logger.debug("EC2InstanceManager.spawn_if_needed(): " \
                      "Current unfinished jobs: %d" % num_unfinished_jobs)
 
+        if num_unfinished_jobs == 0:
+            # No unfinished jobs, no need to go any further.
+            return
+
         job_capacity = num_instances * settings.MAX_ENCODING_JOBS_PER_EC2_INSTANCE
 
         if job_capacity == 0:
@@ -97,8 +101,7 @@ class EC2InstanceManager(object):
 
         is_over_capacity = num_unfinished_jobs >= cap_plus_thresh
         # Disgregard the overflow thresh if there are jobs but no instances.
-        has_jobs_but_no_instances = num_unfinished_jobs > 0 and num_instances == 0
-        if is_over_capacity or has_jobs_but_no_instances:
+        if is_over_capacity or num_instances == 0:
             overage = num_unfinished_jobs - job_capacity
             if job_capacity > 0:
                 # Only factor overhold threshold in when we have capacity
