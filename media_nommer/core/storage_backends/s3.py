@@ -7,8 +7,9 @@ from boto.s3.resumable_download_handler import ResumableDownloadHandler
 from media_nommer.utils import logger
 from media_nommer.utils.uri_parsing import get_values_from_media_uri
 from media_nommer.core.storage_backends.exceptions import InfileNotFoundException
+from media_nommer.core.storage_backends.base_backend import BaseStorageBackend
 
-class S3Backend(object):
+class S3Backend(BaseStorageBackend):
     """
     Abstracts access to S3 via the common set of file storage backend methods.
     """
@@ -30,7 +31,7 @@ class S3Backend(object):
     @classmethod
     def download_file(cls, uri, fobj):
         """
-        Given a URI, download the file to the given file-like object.
+        Given a URI, download the file to the ``fobj`` file-like object.
         
         :param str uri: The URI of a file to download.
         :param file fobj: A file-like object to download the file to.
