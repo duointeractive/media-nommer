@@ -409,7 +409,9 @@ class JobStateBackend(object):
                              delete_msg_on_pop=True):
         """
         Pops job objects from a queue whose entries have bodies that just
-        contain job ID strings.
+        contain job ID strings. This is a generic helper method to pop from
+        arbitrary SQS queues. The new job queue and the job state change queues
+        are examples of uses for it.
         
         .. warning:: 
             Once jobs are popped from a queue and ``delete()`` is ran on the

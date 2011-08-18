@@ -12,6 +12,7 @@ from media_nommer.conf import settings
 from media_nommer.utils import logger
 from media_nommer.feederd.job_cache import JobCache
 from media_nommer.feederd.ec2_instance_manager import EC2InstanceManager
+from media_nommer.feederd import job_state_notifier
 
 def threaded_check_for_job_state_changes():
     """
@@ -23,7 +24,9 @@ def threaded_check_for_job_state_changes():
     :py:data:`SIMPLEDB_JOB_STATE_DOMAIN <media_nommer.conf.settings.SIMPLEDB_JOB_STATE_DOMAIN>`
     setting.
     """
-    JobCache.refresh_jobs_with_state_changes()
+    changed_jobs = JobCache.refresh_jobs_with_state_changes()
+    for job in changed_jobs:
+        job_state_notifier.send_notification(job)
     # If jobs have completed, remove them from the job cache.
     JobCache.uncache_finished_jobs()
 

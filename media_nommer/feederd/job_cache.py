@@ -135,11 +135,16 @@ class JobCache(dict):
         """
         logger.debug("JobCache.refresh_jobs_with_state_changes(): " \
                      "Checking state change queue.")
-        changed_jobs = JobStateBackend.pop_state_changes_from_queue(10)
+        # Pops up to 10 changed jobs that we think may have changed. There are
+        # some false alarms in here, whch brings us to...
+        popped_changed_jobs = JobStateBackend.pop_state_changes_from_queue(10)
+        # A temporary list that stores the jobs that actually changed. This
+        # will be returned at the completion of this method's path.
+        changed_jobs = []
 
-        if changed_jobs:
-            logger.info("Job state changes found: %s" % changed_jobs)
-            for job in changed_jobs:
+        if popped_changed_jobs:
+            logger.info("Potential job state changes found: %s" % popped_changed_jobs)
+            for job in popped_changed_jobs:
                 if cls.is_job_cached(job):
                     current_state = cls.get_job(job).job_state
                     new_state = job.job_state
@@ -153,6 +158,8 @@ class JobCache(dict):
                             new_state,
                         ))
                         cls.update_job(job)
+                        # This one actually changed, append this for returning.
+                        changed_jobs.append(job)
         return changed_jobs
 
     @classmethod
