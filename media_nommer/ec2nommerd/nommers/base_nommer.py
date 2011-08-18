@@ -16,6 +16,8 @@ class BaseNommer(object):
     This is a base class that can be sub-classed by each Nommer to serve
     as a foundation. Required methods raise a NotImplementedError exception
     by default, unless overridden by child classes.
+
+    :attr EncodingJob job: The encoding job this nommer is handling.
     """
     def __init__(self, job):
         self.job = job
