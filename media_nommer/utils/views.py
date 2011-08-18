@@ -66,7 +66,7 @@ class BaseView(object):
         """
         return simplejson.dumps(self.context)
 
-    def view(self, *args, **kwargs):
+    def view(self):
         """
         Override this with your view logic. You'll mostly want to manipulate
         self.context dictionary. If you want to check for certain conditions
