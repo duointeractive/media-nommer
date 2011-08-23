@@ -32,7 +32,7 @@ def send_notification(job):
 
     # This will be JSON-serialized and POSTed to the notify_url.
     data = {
-        'unique_jd': job.unique_id,
+        'unique_id': job.unique_id,
         'job_state': job.job_state,
         'job_state_details': job.job_state_details,
     }
