@@ -1,3 +1,7 @@
+"""
+The following classes are resources/views that :doc:`feederd` makes available
+via its JSON API.
+"""
 import json
 from media_nommer.utils.views import BaseView
 from media_nommer.core.job_state_backend import EncodingJob
@@ -43,11 +47,11 @@ class JobSubmitView(BaseView):
         job_options = payload['job_options']['options']
         nommer = payload['job_options']['nommer']
 
-        print "SOURCE", source_path
-        print "DEST", dest_path
-        print "NOTIFY", notify_url
-        print "OPTIONS", job_options
-        print "NOMMER", nommer
+        #print "SOURCE", source_path
+        #print "DEST", dest_path
+        #print "NOTIFY", notify_url
+        #print "OPTIONS", job_options
+        #print "NOMMER", nommer
 
         # Create a new job and save it to the DB/queue.
         job = EncodingJob(source_path, dest_path, nommer, job_options,

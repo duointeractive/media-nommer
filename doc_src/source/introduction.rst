@@ -59,8 +59,9 @@ comes into play. Here are some of the things it does:
   check on the status of those that are currently running or completed.
   
 :doc:`feederd` may be ran on your current infrastructure, or on EC2_. Your
-EC2_ nodes are never in direct contact with :doc:`feederd`, and instead
-communicate through `Amazon AWS`_.
+EC2_ encoding nodes are never in direct contact with :doc:`feederd`, and
+instead communicate through `Amazon AWS`_. This means no firewall holes need to
+be opened.
 
 ec2nommerd
 ^^^^^^^^^^

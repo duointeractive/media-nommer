@@ -13,50 +13,71 @@ class FFmpegNommer(BaseNommer):
     This :ref:`Nommer <nommers>` is used to encode media with the excellent
     FFmpeg_ utility.
     
-    **Presets**
+    **Example API request**
     
-    Below is an example 
-    :py:data:`PRESETS <media_nommer.conf.settings.PRESETS>`
-    dict for FFmpegNommer::
-    
-        'your_preset_name_here': {
-            'nommer': 'media_nommer.ec2nommerd.nommers.ffmpeg.FFmpegNommer',
-            'options': [
-                {
-                    # These would be passed as infile options to ffmpeg
-                    'infile_options': [
-                    ],
-                    # These are passed as outfile options to ffmpeg
-                    'outfile_options': [
-                        ('s', '320x240'),
-                        # Some flags don't have values, like sameq
-                        ('sameq', None),
-                        ('ar', '22050'),
-                        ('ab', '48'),
-                    ],
-                }, # end pass 1
-                
-                # If you are doing a 2-pass encoding, copy/paste the first
-                # dict in this list and append that here. You'll need to
-                # specify pass numbers and vpre's, but that's just straight
-                # FFmpeg stuff.
+    Below is an example API request. The ``job_options`` dict that is
+    passed to the :doc:`feederd` JSON API is the important part that is
+    specific to this nommer.::
 
-            ], # end encoding options pass list (max of 2)
-        } # end preset
-        
-    In this case, the command created by this nommer would end up being::
-        
-        ffmpeg -y -i <infilename> -s 320x240 -sameq -ar 22050 -ab 48 <outfilename>
-    
-    Note that the ``sameq`` key, value tuple in our ``outfile_options`` dict 
-    above has a ``None`` value. You'll need to do this for flags or options 
-    that don't require a value.
-           
-    If you want no options by default, this is OK too::
-    
-        'minimal_preset': {
-            'nommer': 'media_nommer.ec2nommerd.nommers.ffmpeg.FFmpegNommer'
+        {
+            'source_path': 'some_video.mp4',
+            'dest_path': 'some_video_hqual.mp4',
+            'notify_url': 'http://somewhere.com:8000/job_state_pingback',
+            'job_options': {
+                'nommer': 'media_nommer.ec2nommerd.nommers.ffmpeg.FFmpegNommer',
+                # This options key has ffmpeg command line arguments for a 2-pass
+                # encoding. If you're doing single pass, you'd only have one
+                # dict in this list.
+                'options': [
+                    # First pass command specification.
+                    {
+                        # Just documenting this here so its existence is known.
+                        'infile_options': [],
+                        # Fed to ffmpeg as command line flags. A None key means
+                        # that just the flag name is provided with no arg.
+                        'outfile_options': [
+                            ('threads', 0),
+                            ('vcodec', 'libx264'),
+                            ('preset', 'medium'),
+                            ('profile', 'baseline'),
+                            ('b', '400k'),
+                            ('vf', 'yadif,scale=640:-1'),
+                            # This denotes the first pass in ffmpeg.
+                            ('pass', '1'),
+                            ('f', 'mp4'),
+                            ('an', None),
+                        ],
+                    },
+                    # Second pass command specification.
+                    {
+                        'outfile_options': [
+                            ('threads', 0),
+                            ('vcodec', 'libx264'),
+                            ('preset', 'medium'),
+                            ('profile', 'baseline'),
+                            ('b', '400k'),
+                            ('vf', 'yadif,scale=640:-1'),
+                            # Notice that this is now 2, for the second pass.
+                            ('pass', '2'),
+                            ('acodec', 'libfaac'),
+                            ('ab', '128k'),
+                            ('ar', '48000'),
+                            ('ac', '2'),
+                            ('f', 'mp4'),
+                        ],
+                    },
+                ], # end options list, max of 2 passes.
+            }, # end job_options
         }
+        
+    To show how this would be put together, here is the command that would
+    be ran for the first pass::
+        
+        ffmpeg -y -i some_video.mp4 -threads 0 -vcodec libx264 -preset medium -profile baseline -b 400k -vf yadif,scale=640:-1 -pass 1 -f mp4 -an /dev/null
+    
+    Note that the ``an`` key in the ``outfile_options`` list of the first pass
+    above has a ``None`` value. You'll need to do this for flags or options
+    that don't require a value.
     """
     def _start_encoding(self):
         """

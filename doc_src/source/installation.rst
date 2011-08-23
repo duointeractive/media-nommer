@@ -111,60 +111,18 @@ want to add these settings values (at minimum):
     # The AWS credentials used to access SimpleDB, SQS, and EC2.
     AWS_ACCESS_KEY_ID = 'YYYYYYYYYYYYYYYYYYYY'
     AWS_SECRET_ACCESS_KEY = 'ZZZZZZZZZZZZZZZZZZZZZZZZZZZZZ'
-    
-    PRESETS = {
-        # A basic ffmpeg preset with no default options provided.
-        'basic_ffmpeg': {
-            'nommer': 'media_nommer.ec2nommerd.nommers.ffmpeg.FFmpegNommer',
-            # This options dict will vary wildly depending on which
-            # Nommer you are using. This example only holds true for 
-            # the FFmpegNommer 
-            'options': [
-                {
-                    # These are passed as infile options to ffmpeg
-                    'infile_options': [],
-                    # These are passed as outfile options to ffmpeg
-                    'outfile_options': [
-                        ('threads', 0),
-                    ],
-                },
-            ],
-        },
-    }
+    # The S3 bucket to store a copy of ``nomconf.py`` for nommer instances.
+    # NOTE: CREATE A BUCKET AND CHANGE THIS VALUE BEFORE YOU START!
+    CONFIG_S3_BUCKET = 'change-this-value'
+    # The AWS security groups to create EC2 instances under. They don't need
+    # any rules set.
+    EC2_SECURITY_GROUPS = ['media_nommer']
+    # The name of the SQS queue for job notifications. This will be created
+    # if needed, just pick a unique name.
     
 See :py:mod:`media_nommer.conf.settings` for a full list of settings (and their
 defaults) that you may override in your :file:`nomconf.py`.
     
-Presets
--------
-
-Presets are ways to shorten and simplify your job submission API calls. They
-also make :ref:`Nommers <nommers>` available via the :doc:`JSON API <jsonapi>`.
-
-.. note:: Encoding jobs are submitted through the :doc:`JSON API <jsonapi>`
-    by specifying a preset to use, instead of referring to a 
-    :ref:`Nommer <nommers>` directly. If you want to make a 
-    :ref:`Nommer <nommers>` available through the :doc:`JSON API <jsonapi>`, 
-    you will need a preset key containing a dict with a
-    ``nommer`` key pointing to the nommer's class (as in the example in the
-    *Configuring* section).  
-
-At the very least, you'll need to add a basic preset to for each of the
-:ref:`Nommers <nommers>` you'd like to use. Specifying the ``options`` dict
-is completely optional, and may be overridden in your API request. Also keep
-in mind that the ``options`` dict may differ, depending on the
-:ref:`Nommers <nommers>` you're using (see the 
-:ref:`Nommer <nommers>` docs for more details).
-
-You'll want to look at the
-:py:data:`PRESETS <media_nommer.conf.settings.PRESETS>` setting for more
-details on how this works. The documentation for the :ref:`Nommer <nommers>`
-used in each preset determines what kind of values you can pass in the
-``options`` dict, so make sure you look them over as well.
-
-.. note:: Values provided to the API at submission time always take priority
-    over any directly conflicting default in a preset.
-
 Starting feederd
 ----------------
 
@@ -172,7 +130,10 @@ You will now want to start :doc:`feederd` using whatever init script or
 init daemon you use. We have had good results with Supervisor_, but you can
 use whatever you're comfortable with. Make sure that the server running
 :doc:`feederd` is reachable by the machines that will be sending API requests
-to start encoding jobs.
+to start encoding jobs. Here is an example command string, assuming you're in
+your top-level :file:`media-nommer` directory (not :file:`media_nommer`)::
+
+    PYTHONPATH=media_nommer twistd -n --pidfile=feederd.pid feederd
 
 Using
 -----
