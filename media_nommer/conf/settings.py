@@ -167,6 +167,7 @@ STORAGE_BACKENDS = {
     's3': 'media_nommer.core.storage_backends.s3.S3Backend',
     'http': 'media_nommer.core.storage_backends.http.HTTPBackend',
     'https': 'media_nommer.core.storage_backends.http.HTTPBackend',
+    'file': 'media_nommer.core.storage_backends.file.FileBackend',
 }
 """Default: (All included storage backends)
 
