@@ -68,7 +68,7 @@ EC2_SECURITY_GROUPS = ['media_nommer']
 """Default: ``['media_nommer']``
 
 The AWS_ security groups to create EC2_ instances under."""
-EC2_AMI_ID = 'ami-abf03cc2'
+EC2_AMI_ID = 'ami-37f13d5e'
 """Default: ``The latest upstream AMI compatible with this git revision.``
 
 The AMI ID for the media-nommer EC2_ instance."""
@@ -158,6 +158,10 @@ NOMMERD_NEW_JOB_CHECK_INTERVAL = 60
 
 An interval (in seconds) to wait between calls to AWS_ to check for new 
 jobs."""
+NOMMERD_QTFASTSTART_BIN_PATH = '/home/nom/.virtualenvs/media_nommer/bin/qtfaststart'
+"""
+The path to the qtfaststart bin used by ec2nommerd.
+"""
 
 ##################
 #General settings

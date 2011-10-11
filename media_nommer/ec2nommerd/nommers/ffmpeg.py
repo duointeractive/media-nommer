@@ -7,6 +7,7 @@ import tempfile
 import subprocess
 from media_nommer.utils import logger
 from media_nommer.ec2nommerd.nommers.base_nommer import BaseNommer
+from media_nommer.conf import settings
 
 class FFmpegNommer(BaseNommer):
     """
@@ -175,7 +176,10 @@ class FFmpegNommer(BaseNommer):
         :rtype: list
         :returns: A list to be passed to subprocess.Popen().
         """
-        qtf_cmd = ['qtfaststart', outfile_obj.name]
+        qtf_cmd = [
+            settings.NOMMERD_QTFASTSTART_BIN_PATH,
+            outfile_obj.name
+        ]
 
         logger.debug(
             "FFmpegNommer.__run_ffmpeg(): Command to run: %s" % ' '.join(
