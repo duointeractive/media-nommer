@@ -34,7 +34,12 @@ class FileBackend(BaseStorageBackend):
         logger.debug("FileBackend.download_file(): " \
                      "Opening of %s completed." % uri)
 
-        return open(infile_path, 'rb')
+        infile = open(infile_path, 'rb')
+        # Inefficient, but meh. We'll come up with something more clever later.
+        for line in infile:
+            fobj.write(line)
+        
+        return fobj
 
     @classmethod
     def upload_file(cls, uri, fobj):
