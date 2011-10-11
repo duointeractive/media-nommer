@@ -128,7 +128,7 @@ class FFmpegNommer(BaseNommer):
                                    is_second_pass=False):
         """
         Assembles a command list that subprocess.Popen() will use within
-        self.__run_ffmpeg().
+        self.__run_ffmpeg() to run ffmpeg.
         
         :param file infile_obj: A file-like object for input.
         :param file outfile_obj: A file-like object to store the output.
@@ -158,9 +158,32 @@ class FFmpegNommer(BaseNommer):
             # Second pass of a 2-pass encoding, or one-pass.
             ffmpeg_cmd.append(outfile_obj.name)
 
-        logger.debug("FFmpegNommer.__run_ffmpeg(): Command to run: %s" % ' '.join(ffmpeg_cmd))
+        logger.debug(
+            "FFmpegNommer.__run_ffmpeg(): Command to run: %s" % ' '.join(
+                ffmpeg_cmd
+            )
+        )
 
         return ffmpeg_cmd
+
+    def __assemble_qtfaststart_cmd_list(self, outfile_obj):
+        """
+        Assembles a command list that subprocess.Popen() will use within
+        self.__run_ffmpeg() to run qtfaststart.
+
+        :param file outfile_obj: A file-like object to store the output.
+        :rtype: list
+        :returns: A list to be passed to subprocess.Popen().
+        """
+        qtf_cmd = ['qtfaststart', outfile_obj.name]
+
+        logger.debug(
+            "FFmpegNommer.__run_ffmpeg(): Command to run: %s" % ' '.join(
+                qtf_cmd
+            )
+        )
+
+        return qtf_cmd
 
     def __run_ffmpeg(self, fobj):
         """
@@ -200,16 +223,36 @@ class FFmpegNommer(BaseNommer):
             # 0 is success, so anything but that is bad.
             error_happened = process.returncode != 0
 
-            if not error_happened and (is_second_pass or not is_two_pass):
-                # No errors, return the file object for uploading.
-                out_fobj.seek(0)
-                return out_fobj
-            elif error_happened:
+            if error_happened:
                 # Error found, return nothing so the nommer can die.
-                logger.error(message_or_obj="Error encountered while running ffmpeg.")
+                logger.error(
+                    message_or_obj="Error encountered while running ffmpeg.")
                 logger.error(message_or_obj=cmd_output[0])
                 logger.error(message_or_obj=cmd_output[1])
                 self.wrapped_set_job_state('ERROR', details=cmd_output[1])
                 return None
+
+            move_atom = encoding_pass_options.get('move_atom_to_front', False)
+            if move_atom:
+                qtfaststart_cmd = self.__assemble_qtfaststart_cmd_list(out_fobj)
+                process = subprocess.Popen(qtfaststart_cmd,
+                                           stdout=subprocess.PIPE,
+                                           stderr=subprocess.PIPE)
+                cmd_output = process.communicate()
+                error_happened = process.returncode != 0
+
+                if error_happened:
+                # Error found, return nothing so the nommer can die.
+                    logger.error(
+                        message_or_obj="Error encountered while running qtfaststart.")
+                    logger.error(message_or_obj=cmd_output[0])
+                    logger.error(message_or_obj=cmd_output[1])
+                    self.wrapped_set_job_state('ERROR', details=cmd_output[1])
+                    return None
+
+            if is_second_pass or not is_two_pass:
+                # No errors, return the file object for uploading.
+                out_fobj.seek(0)
+                return out_fobj
 
             pass_counter += 1
