@@ -21,7 +21,7 @@ Client API Libraries
 --------------------
 
 The following API client libraries are for forming and sending JSON queries
-to media-nommer's RESTful API. This is important for sending and checking on
+to media-nommer's web API. This is important for sending and checking on
 encoding jobs. Your applications will use the API to make media-nommer do
 something (other than stare at you blankly).
 
@@ -35,26 +35,58 @@ we'll add yours to the list.
 API Call Reference
 ------------------
 
-All API calls are sent via **POST**, and have keys that may either be straight
-string values or JSON. Responses are also JSON-formatted.
+All API calls are sent via **POST** with the body being JSON. Responses are
+also JSON-formatted.
 
 .. note:: You should send these calls to the host/port that your :doc:`feederd` 
-    is running on. This defaults to 8001, but may specify when you call the
-    :command:`twistd` command to start the daemon.
+    is running on. This defaults to 8001, but may specify when you call
+    the :command:`twistd` command to start the daemon.
 
 /job/submit/
 ^^^^^^^^^^^^
 
 This call submits a job for encoding. Here is an example call with POST
-keys and their values::
+body::
 
-    source_path = s3://AWS_ID:AWS_SECRET_KEY@BUCKET/KEYNAME.mp4
-    dest_path = s3://AWS_ID:AWS_SECRET_KEY@OTHER_BUCKET/KEYNAME.mp4
-    preset = movie_high_q
-    notify_url = http://myapp.somewhere.com/encoding/job_done/
-    job_options = {
-        "infile_options": {"r": 24},
-        "outfile_options": {"sameq": null, "target": "vcd"}
+
+    {
+        "source_path": "s3://AWS_ID:AWS_SECRET_KEY@BUCKET/KEYNAME.mp4",
+        "dest_path": "s3://AWS_ID:AWS_SECRET_KEY@OTHER_BUCKET/KEYNAME.mp4",
+        "notify_url": "http://myapp.somewhere.com/encoding/job_done/",
+        "job_options": {
+            "nommer": "media_nommer.ec2nommerd.nommers.ffmpeg.FFmpegNommer",
+            "options": [
+                {
+                    'outfile_options': [
+                        ('vcodec', 'libx264'),
+                        ('preset', 'medium'),
+                        ('vprofile', 'baseline'),
+                        ('b', '400k'),
+                        ('vf', "yadif,scale='640:trunc(ow/a/2)*2'"),
+                        ('pass', '1'),
+                        ('f', 'mp4'),
+                        ('an', None),
+                    ],
+                },
+                {
+                    'outfile_options': [
+                        ('vcodec', 'libx264'),
+                        ('preset', 'medium'),
+                        ('vprofile', 'baseline'),
+                        ('b', '400k'),
+                        ('vf', "yadif,scale='640:trunc(ow/a/2)*2'"),
+                        ('pass', '2'),
+                        ('acodec', 'libfaac'),
+                        ('ab', '128k'),
+                        ('ar', '48000'),
+                        ('async', '480'),
+                        ('ac', '2'),
+                        ('f', 'mp4'),
+                    ],
+                    'move_atom_to_front': True,
+                },
+            ],
+        },
     }
     
 To further elaborate:
@@ -62,24 +94,16 @@ To further elaborate:
 * ``source_path`` is a URI to the media file you'd like to encode. In this 
   example, we use an S3 URI. 
 * ``dest_path`` is the full URI to where the output will end up.
-* ``preset`` corresponds to a preset specified in your ``nomconf.py``
-  configuration file. See the 
-  :py:data:`PRESETS <media_nommer.conf.settings.PRESETS>` setting for more
-  details. These are mandatory, and can optionally be used to specify default
-  encoding settings for a certain kind of encoding job. You also specify
-  which :ref:`nommer <nommers>` to use here.
+* ``job_options`` is where you provide specifics as to what you'd like
+  media-nommer to do. The ``nommer`` key is used to select which :ref:`nommer <nommers>`
+  to use, and the ``options`` key within ``job_options`` is used to
+  configure said :ref:`nommer <nommers>` (the values depend on the nommer). In
+  the example above, we've selected the
+  :py:class:`FFmpegNommer <media_nommer.ec2nommerd.nommers.ffmpeg.FFmpegNommer>`
+  nommer, which wraps the excellent FFmpeg_. See the documentation for the
+  various  :ref:`nommers` to see what ``job_options`` is used for.
 * ``notify_url`` is optional, and may be omitted entirely. If specified, this
   URL is hit with a GET request when the encoding job completes.
-* ``job_options`` is an optional key that contains a JSON-serialized dict, and 
-  may be omitted as well. The contents of this depends on the 
-  :ref:`nommer <nommers>` selected in your ``preset``.
-  See your ``nomconf.py`` if you need a refresher as to which preset uses which
-  nommer. For this example, we show 
-  :py:class:`FFmpegNommer <media_nommer.ec2nommerd.nommers.ffmpeg.FFmpegNommer>`,
-  which wraps the excellent FFmpeg_. See the documentation for the various 
-  :ref:`nommers` to see what ``job_options`` is used for. In cases where values 
-  specified in your API request's ``job_options`` conflict with the ``options``
-  in your preset, the value from the API request is used.
   
 The response to your request is also JSON-formatted, and looks like this::
 

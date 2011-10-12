@@ -29,8 +29,8 @@ class EncodingJob(object):
     to and from SimpleDB_.
     
     .. tip:: You generally won't be instantiating these objects yourself.
-        To retrieve an existing job, you may use
-        :py:meth:`JobStateBackend.get_job_object_from_id`. 
+        To retrieve an existing job, you may
+        use :py:meth:`JobStateBackend.get_job_object_from_id`.
     """
     def __init__(self, source_path, dest_path, nommer, job_options,
                  unique_id=None, job_state='PENDING', job_state_details=None,
