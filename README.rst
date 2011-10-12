@@ -16,7 +16,7 @@ Documentation
 
 Documentation may be found on the media-nommer `website`_.
 
-.. _website: http://readthedocs.org/dashboard/media-nommer/
+.. _website: http://media-nommer.readthedocs.org/en/latest/
   
 License
 -------
