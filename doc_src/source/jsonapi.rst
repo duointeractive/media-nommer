@@ -30,7 +30,7 @@ we'll add yours to the list.
 
 * `media-nommer-api`_ (Python_)
 
-.. _`media-nommer-api`: http://duointeractive.github.com/media-nommer-api-python/
+.. _`media-nommer-api`: http://media-nommer-api-python.readthedocs.org/en/latest/
 
 API Call Reference
 ------------------
