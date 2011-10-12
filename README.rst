@@ -16,7 +16,7 @@ Documentation
 
 Documentation may be found on the media-nommer `website`_.
 
-.. _website: http://duointeractive.github.com/media-nommer/
+.. _website: http://readthedocs.org/dashboard/media-nommer/
   
 License
 -------
