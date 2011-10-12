@@ -137,9 +137,9 @@ NOMMERD_TERMINATE_WHEN_IDLE = True
 When ``True``, allow the termination of idle EC2_ instances based on 
 the :py:data:`NOMMERD_MAX_INACTIVITY` setting. It is important to keep in
 mind that you pay for an entire hour when you start an EC2 instance, so
-setting this timeout to anything below 45 minutes is probably a waste
+setting this timeout to anything below 10 minutes is probably a waste
 of money. This timeout is in seconds."""
-NOMMERD_MAX_INACTIVITY = 60 * 50
+NOMMERD_MAX_INACTIVITY = 60 * 10
 """Default: ``60 * 50``
 
 How many seconds of inactivity (not working on any jobs) before an
