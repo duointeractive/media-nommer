@@ -117,7 +117,7 @@ class JobCache(dict):
 
         print("Jobs loaded from SDB to cache:")
         for job in jobs:
-            print('* %s (%s -- %s)' % (
+            print('* %s (ID: %s -- Finished: %s)' % (
                 job.unique_id, job.job_state,
                 job.is_finished())
             )
@@ -134,7 +134,7 @@ class JobCache(dict):
         :returns: A list of changed :py:class:`EncodingJob` objects.
         """
         logger.debug("JobCache.refresh_jobs_with_state_changes(): " \
-                     "Checking state change queue.")
+                    "Checking state change queue.")
         # Pops up to 10 changed jobs that we think may have changed. There are
         # some false alarms in here, whch brings us to...
         popped_changed_jobs = JobStateBackend.pop_state_changes_from_queue(10)
@@ -143,7 +143,7 @@ class JobCache(dict):
         changed_jobs = []
 
         if popped_changed_jobs:
-            logger.info("Potential job state changes found: %s" % popped_changed_jobs)
+            logger.debug("Potential job state changes found: %s" % popped_changed_jobs)
             for job in popped_changed_jobs:
                 if cls.is_job_cached(job):
                     current_state = cls.get_job(job).job_state
@@ -160,6 +160,9 @@ class JobCache(dict):
                         cls.update_job(job)
                         # This one actually changed, append this for returning.
                         changed_jobs.append(job)
+                        if new_state == 'ERROR':
+                            logger.error('Error trace from ec2nommerd:')
+                            logger.error(job.job_state_details)
         return changed_jobs
 
     @classmethod
