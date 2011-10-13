@@ -68,7 +68,7 @@ EC2_SECURITY_GROUPS = ['media_nommer']
 """Default: ``['media_nommer']``
 
 The AWS_ security groups to create EC2_ instances under."""
-EC2_AMI_ID = 'ami-37f13d5e'
+EC2_AMI_ID = 'ami-1922ee70'
 """Default: ``The latest upstream AMI compatible with this git revision.``
 
 The AMI ID for the media-nommer EC2_ instance."""
