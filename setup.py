@@ -41,9 +41,11 @@ setup(
         'media_nommer.ec2nommerd',
         'media_nommer.ec2nommerd.nommers',
         'media_nommer.ec2nommerd.web',
+        'media_nommer.ec2nommerd.web.resources',
         'media_nommer.core.storage_backends',
         'media_nommer.feederd',
         'media_nommer.feederd.web',
+        'media_nommer.feederd.web.resources',
         'media_nommer.utils'
     ],
     data_files=data_files,
