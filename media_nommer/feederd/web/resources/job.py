@@ -1,13 +1,14 @@
 """
 The following classes are resources/views that :doc:`feederd` makes available
-via its JSON API.
+via its JSON API. :py:class:`JobResource` serves as the top-level routing
+resource that determines the /job/<command>/ routing to the appropriate
+sub-resource.
 """
-import json
-from media_nommer.utils.views import BaseView
+from media_nommer.utils.resources import BasicJSONResource, RoutingResource
 from media_nommer.core.job_state_backend import EncodingJob
 from media_nommer.feederd.job_cache import JobCache
 
-class JobSubmitView(BaseView):
+class JobSubmitResource(BasicJSONResource):
     """
     This view is used to submit new encoding jobs. The data is parsed and
     a new job is created through feederd, which is then picked up by the
@@ -25,8 +26,8 @@ class JobSubmitView(BaseView):
         'options', 'nommer',
     ]
 
-    def view(self):
-        payload = json.loads(self.request.content.read())
+    def set_context(self, request):
+        payload = self.user_input
         print(payload)
 
         for key in self.required_keys:
@@ -62,3 +63,15 @@ class JobSubmitView(BaseView):
 
         # This is serialized and returned to the user.
         self.context.update({'job_id': unique_job_id})
+
+
+class JobResource(RoutingResource):
+    """
+    Job-related resources.
+
+    Path: /job/*
+    """
+    # Maps the URL name to the resource.
+    PATHS = {
+        'submit': JobSubmitResource,
+    }

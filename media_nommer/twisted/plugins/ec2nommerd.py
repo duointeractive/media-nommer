@@ -16,7 +16,7 @@ from twisted.web.server import Site
 
 from media_nommer import conf
 from media_nommer.conf.utils import download_settings
-from media_nommer.ec2nommerd.web.urls import API
+from media_nommer.ec2nommerd.web.resources import APIResource
 
 class Options(usage.Options):
     """
@@ -51,7 +51,7 @@ class WebApiServiceMaker(object):
         self.download_settings()
         self.load_settings(options)
         self.start_tasks(options)
-        return internet.TCPServer(int(options['port']), Site(API))
+        return internet.TCPServer(int(options['port']), Site(APIResource))
 
     def download_settings(self):
         """

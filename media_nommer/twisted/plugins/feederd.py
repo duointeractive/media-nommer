@@ -12,11 +12,10 @@ from twisted.plugin import IPlugin
 from twisted.application.service import IServiceMaker
 from twisted.application import internet
 from twisted.web.server import Site
-from twisted.python import log
 
 from media_nommer import conf
 from media_nommer.conf.utils import upload_settings
-from media_nommer.feederd.web.urls import API
+from media_nommer.feederd.web.resources import APIResource
 from media_nommer.feederd.job_cache import JobCache
 
 class Options(usage.Options):
@@ -50,7 +49,10 @@ class WebApiServiceMaker(object):
         self.upload_user_settings()
         self.load_job_cache()
         self.start_tasks()
-        return internet.TCPServer(int(options['port']), Site(API))
+        
+        server = internet.TCPServer(int(options['port']), Site(APIResource))
+        server.setName('WebAPI')
+        return server
 
     def load_settings(self, options):
         """
