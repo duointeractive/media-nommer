@@ -117,7 +117,7 @@ class JobCache(dict):
 
         print("Jobs loaded from SDB to cache:")
         for job in jobs:
-            print('* %s (ID: %s -- Finished: %s)' % (
+            print('* %s (State: %s -- Finished: %s)' % (
                 job.unique_id, job.job_state,
                 job.is_finished())
             )
