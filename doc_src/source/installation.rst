@@ -25,15 +25,15 @@ but it will be *much* more difficult for us to help you:
 * You are running a flavor of Linux, BSD, Mac OS, or something POSIX compatible.
   While Windows support is achievable, it's not something we currently have
   the resources to maintain (any takers?).
-* You have Python_ 2.5 or later. Python_ 2.6 or 2.7 is preferred. Python_ 3.x is 
+* You have Python_ 2.y or later. Python_ 2.7 is preferred. Python_ 3.x is
   not currently supported.
-* You have an `Amazon AWS`_ account, and can create or destroy S3_ buckets.
+* You have an `Amazon AWS`_ account, and can create S3_ buckets.
 
 Requirements
 ------------
 
 * Some flavor of Linux, Unix, BSD, Mac OS, or POSIX compliant OS.
-* Python_ 2.5 or higher, Python_ 2.6 or 2.7 recommended. Python_ 3.x is not 
+* Python_ 2.6 or higher, with Python 2.7 recommended. Python_ 3.x is not
   supported (yet).
 
 Installing
@@ -82,17 +82,36 @@ involves looking over an agreement and accepting it.
     community forums are also a great resource.
 
 Fees are based on what you actually use, so signing up for these services will
-incur no costs unless you use them. 
+incur no costs unless you use them.
+
+AWS Management Console stuff
+----------------------------
+
+After you've signed up for all of the necessary services, there are a few
+steps to work through within the `AWS Management Console`_. Sign in and take
+care of the following.
+
+Create a Security Group
+^^^^^^^^^^^^^^^^^^^^^^^
 
 You will need to create a ``media_nommer`` EC2 *Security Group* through the 
-AWS_ management console for your EC2_ instances to be part of. 
+AWS_ management console for your EC2_ instances to be part of. You don't need
+to add any rules, though, unless you want SSH access to the encoding nodes.
 
 .. warning:: Failure to create an EC2 security group will result in
     media-nommer not being able to spawn EC2 instances, which means
     no encoding for you.
 
-You will also need to create an SSH key pair. Make sure to keep track of the 
-name of your key pair, as you will need this in the configuration stage.
+Create or import an SSH key pair
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Click on the **EC2** tab and find the **Key Pairs** link on the navigation bar.
+You can then either create or import a key pair. Make sure to keep track of the
+name of your keypair, as you'll need to specify it in your media-nommer
+configuration later on.
+
+.. warning:: Failure to create or import an SSH key pair will also lead to
+    media-nommer being unable to spawn EC2 instances.
     
 .. _installing_configuring:
     
@@ -117,8 +136,6 @@ want to add these settings values (at minimum):
     # The AWS security groups to create EC2 instances under. They don't need
     # any rules set.
     EC2_SECURITY_GROUPS = ['media_nommer']
-    # The name of the SQS queue for job notifications. This will be created
-    # if needed, just pick a unique name.
     
 See :py:mod:`media_nommer.conf.settings` for a full list of settings (and their
 defaults) that you may override in your :file:`nomconf.py`.
