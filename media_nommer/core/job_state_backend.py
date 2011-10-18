@@ -15,7 +15,7 @@ There are two pieces to the job state backend:
 import random
 import hashlib
 import datetime
-import simplejson
+import json
 import boto
 from boto.sqs.message import Message
 from media_nommer.conf import settings
@@ -76,7 +76,7 @@ class EncodingJob(object):
         if isinstance(self.job_options, basestring):
             # If job_options is a string, it is JSON. De-code it and make it
             # a Python dict.
-            self.job_options = simplejson.loads(self.job_options)
+            self.job_options = json.loads(self.job_options)
 
         self.job_state = job_state
 
@@ -164,7 +164,7 @@ class EncodingJob(object):
         job['dest_path'] = self.dest_path
         job['nommer'] = '%s.%s' % (self.nommer.__class__.__module__,
                                    self.nommer.__class__.__name__)
-        job['job_options'] = simplejson.dumps(self.job_options)
+        job['job_options'] = json.dumps(self.job_options)
         job['job_state'] = self.job_state
         job['job_state_details'] = self.job_state_details
         job['notify_url'] = self.notify_url

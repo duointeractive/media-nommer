@@ -31,8 +31,8 @@ setup(
     url='http://duointeractive.github.com/media-nommer/',
     platforms=["any"],
     # Can't use this until pip install --upgrade behavior is corrected.
-    #install_requires=['boto', 'twisted', 'simplejson'],
-    install_requires=['boto', 'simplejson'],
+    #install_requires=['boto', 'twisted'],
+    install_requires=['boto'],
     provides=['media_nommer'],
     packages=[
         'media_nommer',

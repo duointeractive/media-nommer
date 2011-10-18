@@ -1,4 +1,4 @@
-import simplejson
+import json
 from twisted.web.resource import Resource, NoResource
 
 class RoutingResource(Resource):
@@ -73,7 +73,7 @@ class BasicJSONResource(Resource):
         raw_input = request.content.read()
 
         if raw_input:
-            return simplejson.loads(raw_input)
+            return json.loads(raw_input)
         else:
             return None
 
@@ -91,7 +91,7 @@ class BasicJSONResource(Resource):
         :rtype: str
         :returns: A serialized JSON string to return to the user.
         """
-        return simplejson.dumps(self.context)
+        return json.dumps(self.context)
 
     def render_POST(self, request):
         """
