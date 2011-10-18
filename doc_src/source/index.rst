@@ -38,6 +38,8 @@ These links may also be useful to you.
 
 * Source repository: https://github.com/duointeractive/media-nommer
 * Issue tracker: https://github.com/duointeractive/media-nommer/issues
+* Mailing list: https://groups.google.com/forum/?hl=en#!forum/media-nommer
+* IRC Room: #medianommer on FreeNode
 
 Documentation
 -------------

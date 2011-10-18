@@ -1,5 +1,6 @@
 .. _GitHub project: https://github.com/duointeractive/media-nommer
 .. _issue tracker: https://github.com/duointeractive/media-nommer/issues
+.. _mailing list: https://groups.google.com/forum/?hl=en#!forum/media-nommer
 
 .. _Python: http://python.org
 .. _Twisted: http://twistedmatrix.com/trac/
