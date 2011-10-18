@@ -17,7 +17,7 @@ class BaseNommer(object):
     as a foundation. Required methods raise a NotImplementedError exception
     by default, unless overridden by child classes.
 
-    :attr EncodingJob job: The encoding job this nommer is handling.
+    :ivar EncodingJob job: The encoding job this nommer is handling.
     """
     def __init__(self, job):
         self.job = job
