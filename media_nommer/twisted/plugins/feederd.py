@@ -49,8 +49,9 @@ class WebApiServiceMaker(object):
         self.upload_user_settings()
         self.load_job_cache()
         self.start_tasks()
-        
-        server = internet.TCPServer(int(options['port']), Site(APIResource))
+
+        factory = Site(APIResource())
+        server = internet.TCPServer(int(options['port']), factory)
         server.setName('WebAPI')
         return server
 
