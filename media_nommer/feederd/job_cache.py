@@ -9,8 +9,8 @@ from media_nommer.utils.compat import total_seconds
 
 class JobCache(dict):
     """
-    Caches currently active 
-    :py:class:`media_nommer.core.job_state_backend.EncodingJob` objects. 
+    Caches currently active
+    :py:class:`media_nommer.core.job_state_backend.EncodingJob` objects.
     This is presently only un-finished jobs, as defined by
     :py:attr:`media_nommer.core.job_state_backend.JobStateBackend.FINISHED_STATES`.
     """
@@ -21,8 +21,8 @@ class JobCache(dict):
         """
         Updates a job in the cache. Creates the key if it doesn't
         already exist.
-        
-        
+
+
         :type job: :py:class:`EncodingJob <media_nommer.core.job_state_backend.EncodingJob>`
         :param job: The job to update (or create) a cache entry for.
         """
@@ -32,7 +32,7 @@ class JobCache(dict):
     def get_job(cls, job):
         """
         Given a job's unique id, return the job object from the cache.
-        
+
         :type job: :py:class:`EncodingJob <media_nommer.core.job_state_backend.EncodingJob>`
         :param job: A job's unique ID or a job object.
         :rtype: :py:class:`EncodingJob <media_nommer.core.job_state_backend.EncodingJob>`
@@ -48,7 +48,7 @@ class JobCache(dict):
     def remove_job(cls, job):
         """
         Removes a job from the cache.
-        
+
         :type job: ``str`` or :py:class:`EncodingJob <media_nommer.core.job_state_backend.EncodingJob>`
         :param job: A job's unique ID or a job object.
         """
@@ -61,9 +61,9 @@ class JobCache(dict):
     @classmethod
     def is_job_cached(cls, job):
         """
-        Given a job object or a unique id, return True if said job is cached, 
+        Given a job object or a unique id, return True if said job is cached,
         and False if not.
-        
+
         :type job: ``str`` or :py:class:`EncodingJob <media_nommer.core.job_state_backend.EncodingJob>`
         :param job: A job's unique ID or a job object.
         :rtype: bool
@@ -81,10 +81,10 @@ class JobCache(dict):
         """
         Returns a dict of all cached jobs. The keys are unique IDs, the
         values are the job objects.
-        
+
         :rtype: dict
         :returns: A dictionary with the keys being unique IDs of cached jobs,
-            and the values being 
+            and the values being
             :py:class:`EncodingJob <media_nommer.core.job_state_backend.EncodingJob>`
             instances.
         """
@@ -93,10 +93,10 @@ class JobCache(dict):
     @classmethod
     def get_jobs_with_state(cls, state):
         """
-        Given a valid job state (refer to 
+        Given a valid job state (refer to
         :py:attr:`media_nommer.core.job_state_backend.JobStateBackend.JOB_STATES`),
         return all jobs that currently have this state.
-        
+
         :param str state: The job state to query by.
         :rtype: ``list`` of :py:class:`EncodingJob <media_nommer.core.job_state_backend.EncodingJob>`
         :returns: A list of jobs matching the given state.
@@ -129,7 +129,7 @@ class JobCache(dict):
         :py:data:`SQS_JOB_STATE_CHANGE_QUEUE_NAME <media_nommer.conf.settings.SQS_JOB_STATE_CHANGE_QUEUE_NAME>`
         setting and refreshes any jobs that have changed. This simply reloads
         the job's details from SimpleDB_.
-        
+
         :rtype: ``list`` of :py:class:`EncodingJob <media_nommer.core.job_state_backend.EncodingJob>`
         :returns: A list of changed :py:class:`EncodingJob` objects.
         """
@@ -168,17 +168,19 @@ class JobCache(dict):
     @classmethod
     def abandon_stale_jobs(cls):
         """
-        On rare occasions, nommers crash so hard that no ``ERROR`` state change 
+        On rare occasions, nommers crash so hard that no ``ERROR`` state change
         is made, and the job just gets stuck in a permanent unfinished state
-        (``DOWNLOADING``, ``ENCODING``, ``UPLOADING``, etc). Rather than hang 
+        (``DOWNLOADING``, ``ENCODING``, ``UPLOADING``, etc). Rather than hang
         on to these indefinitely, abandon them by setting their state to
         ``ABANDONED``.
-        
+
         The threshold for which jobs are considered abandoned is configurable
         via the
         :py:data:`FEEDERD_ABANDON_INACTIVE_JOBS_THRESH <media_nommer.conf.settings.FEEDERD_ABANDON_INACTIVE_JOBS_THRESH>`
         setting.
         """
+        logger.debug("JobCache.abandon_stale_jobs(): "\
+                     "Looking for stale jobs.")
         for id, job in cls.get_cached_jobs().items():
             if not job.is_finished():
                 now_dtime = datetime.datetime.now()
@@ -195,7 +197,7 @@ class JobCache(dict):
     def uncache_finished_jobs(cls):
         """
         Clears jobs from the cache after they have been finished.
-        
+
         TODO: We'll eventually want to clear jobs from the cache that haven't
         been accessed by the web API recently.
         """

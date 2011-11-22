@@ -3,7 +3,6 @@ This module contains an S3Backend class for working with URIs that have
 an s3:// protocol specified.
 """
 import boto
-from boto.s3.resumable_download_handler import ResumableDownloadHandler
 from media_nommer.utils import logger
 from media_nommer.utils.uri_parsing import get_values_from_media_uri
 from media_nommer.core.storage_backends.exceptions import InfileNotFoundException
@@ -18,10 +17,10 @@ class S3Backend(BaseStorageBackend):
         """
         Lazy-loading of the S3 boto connection. Refer to this instead of
         referencing self._aws_s3_connection directly.
-        
+
         :param str access_key: The AWS_ Access Key needed to get to the
             file in question.
-        :param str secret_access_key: The AWS_ Secret Access Key needed to get 
+        :param str secret_access_key: The AWS_ Secret Access Key needed to get
             to the file in question.
         :rtype: :py:class:`boto.s3.connection.Connection`
         :returns: A boto connection to Amazon's S3 interface.
@@ -32,7 +31,7 @@ class S3Backend(BaseStorageBackend):
     def download_file(cls, uri, fobj):
         """
         Given a URI, download the file to the ``fobj`` file-like object.
-        
+
         :param str uri: The URI of a file to download.
         :param file fobj: A file-like object to download the file to.
         :rtype: file
@@ -48,10 +47,9 @@ class S3Backend(BaseStorageBackend):
 
         logger.debug("S3Backend.download_file(): " \
                      "Downloading: %s" % uri)
-        
-        dlhandler = ResumableDownloadHandler(num_retries=10)
+
         try:
-            dlhandler.get_file(key, fobj, None)
+            key.get_contents_to_file(fobj)
         except AttributeError:
             # Raised by ResumableDownloadHandler in boto when the given S3
             # key can't be found.
@@ -66,7 +64,7 @@ class S3Backend(BaseStorageBackend):
     def upload_file(cls, uri, fobj):
         """
         Given a file-like object, upload it to the specified URI.
-        
+
         :param str uri: The URI to upload the file to.
         :param file fobj: The file-like object to populate the S3 key from.
         :rtype: :py:class:`boto.s3.key.Key`

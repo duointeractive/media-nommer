@@ -1,6 +1,6 @@
 """
-This module contains default global settings. When 
-:doc:`../ec2nommerd` and :doc:`../feederd` daemons are started,  
+This module contains default global settings. When
+:doc:`../ec2nommerd` and :doc:`../feederd` daemons are started,
 :py:func:`media_nommer.conf.update_settings_from_module` takes the settings
 that the user explicitly set and overrides these defaults.
 
@@ -40,7 +40,7 @@ SQS_JOB_STATE_CHANGE_QUEUE_NAME = 'media_nommer_jstate'
 """Default: ``'media_nommer_jstate'``
 
 The SQS_ queue used to notify :doc:`../feederd` of changes in job state.
-For example, when a job goes from ``PENDING`` to ``DOWNLOADING`` or 
+For example, when a job goes from ``PENDING`` to ``DOWNLOADING`` or
 ``ENCODING``."""
 
 SIMPLEDB_JOB_STATE_DOMAIN = 'media_nommer'
@@ -75,7 +75,7 @@ The AMI ID for the media-nommer EC2_ instance."""
 EC2_INSTANCE_TYPE = 'm1.large'
 """Default: ``'m1.large'``
 
-The type of instance to run on. Must be at least ``m1.large``. ``t1.micro`` 
+The type of instance to run on. Must be at least ``m1.large``. ``t1.micro``
 and ``t1.small`` instances are *NOT* supported by the default AMI."""
 
 ###############################
@@ -94,10 +94,10 @@ The maximum number of EC2 instances to run at a time."""
 JOB_OVERFLOW_THRESH = 2
 """Default: ``2``
 
-If the number of unfinished jobs exceeds our capacity 
-(:py:data:`MAX_ENCODING_JOBS_PER_EC2_INSTANCE` * 
-``<Number of Active EC2 instances>``) by this number of jobs, look at starting 
-new instances if we have not already exceeded 
+If the number of unfinished jobs exceeds our capacity
+(:py:data:`MAX_ENCODING_JOBS_PER_EC2_INSTANCE` *
+``<Number of Active EC2 instances>``) by this number of jobs, look at starting
+new instances if we have not already exceeded
 :py:data:`MAX_NUM_EC2_INSTANCES`."""
 
 ###################
@@ -116,7 +116,7 @@ FEEDERD_ALLOW_EC2_LAUNCHES = True
 """Default: ``True``
 
 When ``True``, allow the launching of new EC2_ encoder instances."""
-FEEDERD_ABANDON_INACTIVE_JOBS_THRESH = 3600 * 24
+FEEDERD_ABANDON_INACTIVE_JOBS_THRESH = 3600 * 9
 """Default: ``3600 * 24``
 
 If a job sticks in an un-finished state after this long (in seconds), it
@@ -134,7 +134,7 @@ EC2_ instances."""
 NOMMERD_TERMINATE_WHEN_IDLE = True
 """Default: ``True``
 
-When ``True``, allow the termination of idle EC2_ instances based on 
+When ``True``, allow the termination of idle EC2_ instances based on
 the :py:data:`NOMMERD_MAX_INACTIVITY` setting. It is important to keep in
 mind that you pay for an entire hour when you start an EC2 instance, so
 setting this timeout to anything below 10 minutes is probably a waste
@@ -147,16 +147,16 @@ instance will terminate itself."""
 NOMMERD_HEARTBEAT_INTERVAL = 60
 """Default: ``60``
 
-Used by EC2_ nodes to determine how long to wait between sending a status 
-update via SimpleDB_. The node will also check for inactivity greater than the 
-configured value in :py:data:`NOMMERD_MAX_INACTIVITY`, and terminate itself if 
-inactivity has exceeded that value, and :py:data:`NOMMERD_TERMINATE_WHEN_IDLE` 
+Used by EC2_ nodes to determine how long to wait between sending a status
+update via SimpleDB_. The node will also check for inactivity greater than the
+configured value in :py:data:`NOMMERD_MAX_INACTIVITY`, and terminate itself if
+inactivity has exceeded that value, and :py:data:`NOMMERD_TERMINATE_WHEN_IDLE`
 is ``True``.
 """
 NOMMERD_NEW_JOB_CHECK_INTERVAL = 60
 """Default: ``60``
 
-An interval (in seconds) to wait between calls to AWS_ to check for new 
+An interval (in seconds) to wait between calls to AWS_ to check for new
 jobs."""
 NOMMERD_QTFASTSTART_BIN_PATH = '/home/nom/.virtualenvs/media_nommer/bin/qtfaststart'
 """
@@ -175,5 +175,5 @@ STORAGE_BACKENDS = {
 }
 """Default: (All included storage backends)
 
-Storage backends. The protocol is the key, the value is the backend class 
+Storage backends. The protocol is the key, the value is the backend class
 used to work with said protocol."""
