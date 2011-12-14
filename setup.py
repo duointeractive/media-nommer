@@ -32,7 +32,7 @@ setup(
     platforms=["any"],
     # Can't use this until pip install --upgrade behavior is corrected.
     #install_requires=['boto', 'twisted'],
-    install_requires=['boto'],
+    install_requires=['boto', 'qtfaststart'],
     provides=['media_nommer'],
     packages=[
         'media_nommer',

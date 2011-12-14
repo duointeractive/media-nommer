@@ -158,7 +158,7 @@ NOMMERD_NEW_JOB_CHECK_INTERVAL = 60
 
 An interval (in seconds) to wait between calls to AWS_ to check for new
 jobs."""
-NOMMERD_QTFASTSTART_BIN_PATH = '/home/nom/.virtualenvs/media_nommer/bin/qtfaststart'
+NOMMERD_QTFASTSTART_BIN_PATH = 'qtfaststart'
 """
 The path to the qtfaststart bin used by ec2nommerd.
 """
