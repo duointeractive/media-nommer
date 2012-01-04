@@ -107,6 +107,12 @@ class EC2InstanceManager(object):
                 # Only factor overhold threshold in when we have capacity
                 # available in some form.
                 overage -= settings.JOB_OVERFLOW_THRESH
+
+            if overage <= 0:
+                # Adding in the overflow thresh brought this under the
+                # overage level. No need for spawning instances.
+                return None
+
             logger.info("EC2InstanceManager.spawn_if_needed(): " \
                          "Observed labor shortage of: %d" % overage)
 
