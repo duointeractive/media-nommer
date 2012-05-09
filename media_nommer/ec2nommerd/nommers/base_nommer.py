@@ -33,7 +33,7 @@ class BaseNommer(object):
         self.temp_cwd = tempfile.mkdtemp()
 
         try:
-            self._start_encoding()
+            self._onomnom()
         except:
             # If we run into any un-handled exceptions, error out the job
             # and set as its state details.
@@ -43,7 +43,7 @@ class BaseNommer(object):
         # Clean up the temporary CWD used during nomming.
         shutil.rmtree(self.temp_cwd, ignore_errors=True)
 
-    def _start_encoding(self):
+    def _onomnom(self):
         """
         Call your encoder here, do work. Make sure to update job state as
         it progresses, if you can.

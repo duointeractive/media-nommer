@@ -80,7 +80,7 @@ class FFmpegNommer(BaseNommer):
     above has a ``None`` value. You'll need to do this for flags or options
     that don't require a value.
     """
-    def _start_encoding(self):
+    def _onomnom(self):
         """
         Best thought of as a ``main()`` method for the Nommer. This is the
         main bit of logic that directs the encoding process.
